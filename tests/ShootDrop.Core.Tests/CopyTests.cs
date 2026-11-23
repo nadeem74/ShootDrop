@@ -40,6 +40,34 @@ public class CopyTests
     }
 
     [Fact]
+    public void Pocket_audio_track_goes_to_the_audio_folder_not_with_the_video()
+    {
+        using var tmp = new TempDir();
+        var pocket = new FakeCard(tmp, "DJI");
+        pocket.Add("DCIM/DJI_002/DJI_20261123144348_0568_D.MP4", Days.At(23));
+        pocket.Add("DCIM/DJI_002/DJI_20261123144348_0568_D.AAC", Days.At(23));
+
+        var plan = CopyPlanner.Build(Path.Combine(tmp.Path, "P"),
+            [Files(pocket, "DJI", Profile("dji-osmo-pocket"), FileKind.Video, FileKind.Audio)], Routing.Default());
+
+        Assert.Equal("Video/Pocket 4P", plan.Items.Single(i => i.Source.Name.EndsWith(".MP4")).Folder);
+        Assert.Equal("Audio/DJI Mic", plan.Items.Single(i => i.Source.Name.EndsWith(".AAC")).Folder);
+    }
+
+    [Fact]
+    public void Old_settings_are_upgraded_to_route_audio_separately()
+    {
+        using var tmp = new TempDir();
+        var path = Path.Combine(tmp.Path, "settings.json");
+        File.WriteAllText(path, """{ "projectsRoot": "/x", "routing": { "byKind": { "Photo": "Images", "Proxy": "" } } }""");
+
+        var s = new SettingsStore(path).Load();
+
+        Assert.Equal("Audio/DJI Mic", s.Routing.ByKind[FileKind.Audio]);
+        Assert.Equal(AppSettings.CurrentVersion, s.Version);
+    }
+
+    [Fact]
     public void Same_name_from_two_cards_gets_the_card_name_added()
     {
         using var tmp = new TempDir();

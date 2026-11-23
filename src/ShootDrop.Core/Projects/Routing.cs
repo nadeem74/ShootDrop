@@ -19,9 +19,12 @@ public sealed class Routing
     /// <summary>Card id → folder, for cards the user routed by hand (unknown cards).</summary>
     public Dictionary<string, string> ByCard { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Default audio folder. DJI cameras save the mic track as a separate .AAC next to each .MP4.</summary>
+    public const string DefaultAudioFolder = "Audio/DJI Mic";
+
     public static Routing Default() => new()
     {
-        ByKind = new() { [FileKind.Photo] = "Images", [FileKind.Proxy] = "" },
+        ByKind = new() { [FileKind.Audio] = DefaultAudioFolder, [FileKind.Photo] = "Images", [FileKind.Proxy] = "" },
     };
 
     /// <returns>The project-relative folder, or null when the user must choose (unknown card).</returns>

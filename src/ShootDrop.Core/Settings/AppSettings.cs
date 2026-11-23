@@ -17,6 +17,23 @@ public sealed record Setup(string Name, IReadOnlyList<string>? CardKeys, DateRul
 /// <summary>Everything ShootDrop remembers between runs.</summary>
 public sealed class AppSettings
 {
+    /// <summary>Settings format version, for upgrading older settings.json files.</summary>
+    public int Version { get; set; }
+
+    public const int CurrentVersion = 2;
+
+    /// <summary>Brings settings saved by an older ShootDrop up to date.</summary>
+    public void Upgrade()
+    {
+        if (Version < 2)
+        {
+            // v2: audio files get their own folder instead of following the camera's video (found 23 Nov 2026:
+            // the Pocket's .AAC mic tracks landed in Video/Pocket 4P).
+            Routing.ByKind.TryAdd(FileKind.Audio, Routing.DefaultAudioFolder);
+        }
+        Version = CurrentVersion;
+    }
+
     /// <summary>Where projects are created, e.g. "/Volumes/SSD 1TB/SSD Video Projects".</summary>
     public string ProjectsRoot { get; set; } = "";
 
@@ -89,9 +106,18 @@ public sealed class SettingsStore(string path)
 
     public AppSettings Load()
     {
-        if (!File.Exists(Path)) return new AppSettings();
-        using var stream = File.OpenRead(Path);
-        return JsonSerializer.Deserialize<AppSettings>(stream, Json.Options) ?? new AppSettings();
+        AppSettings settings;
+        if (!File.Exists(Path))
+        {
+            settings = new AppSettings();
+        }
+        else
+        {
+            using var stream = File.OpenRead(Path);
+            settings = JsonSerializer.Deserialize<AppSettings>(stream, Json.Options) ?? new AppSettings();
+        }
+        settings.Upgrade();
+        return settings;
     }
 
     public void Save(AppSettings settings)

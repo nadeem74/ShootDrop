@@ -57,6 +57,7 @@ public sealed record ExtensionGroup(string Kind, string Extensions);
 public sealed partial class SettingsPageViewModel : PageViewModel
 {
     public const string DontCopy = "Don't copy";
+    public const string WithVideo = "With the video";
     private const string TopLevel = "Top level";
     private readonly ShootDropContext _ctx;
     private bool _loading;
@@ -155,7 +156,11 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         var options = new List<string> { DontCopy };
         options.AddRange(all);
         Routes.Clear();
-        foreach (var r in routes) Routes.Add(new RouteRow(r.Key, r.Source, r.What, options, r.Folder, OnRouteChanged));
+        foreach (var r in routes)
+        {
+            var rowOptions = r.Key == "kind:Audio" ? new[] { WithVideo }.Concat(options).ToList() : options;
+            Routes.Add(new RouteRow(r.Key, r.Source, r.What, rowOptions, r.Folder, OnRouteChanged));
+        }
         UpdateExample();
         _loading = false;
     }
@@ -173,6 +178,8 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         }
         foreach (var (card, folder) in s.Routing.ByCard)
             list.Add(new SourceRoute("card:" + card, card, "Card you routed by hand", folder));
+        list.Add(new SourceRoute("kind:Audio", "Audio files from any card", "AAC, WAV: e.g. the Pocket's mic track",
+            s.Routing.ByKind.TryGetValue(FileKind.Audio, out var audio) ? audio : WithVideo));
         list.Add(new SourceRoute("kind:Photo", "Photos from any card", "JPG, HEIC, RW2, DNG", s.Routing.ByKind.GetValueOrDefault(FileKind.Photo, "")));
         list.Add(new SourceRoute("kind:Proxy", "Proxy files", "LRF from DJI", s.Routing.ByKind.GetValueOrDefault(FileKind.Proxy, "")));
         return list;
@@ -194,6 +201,7 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         {
             case "profile": r.ByProfile[key] = value; break;
             case "card": r.ByCard[key] = value; break;
+            case "kind" when row.Selected == WithVideo: r.ByKind.Remove(Enum.Parse<FileKind>(key)); break;
             case "kind": r.ByKind[Enum.Parse<FileKind>(key)] = value; break;
         }
         _ctx.Save();
@@ -237,11 +245,13 @@ public sealed partial class SettingsPageViewModel : PageViewModel
                 r.ByProfile["dji-osmo-pocket"] = "Video/A-roll";
                 r.ByProfile["panasonic-lumix"] = "Video/B-roll";
                 r.ByProfile["dji-mic"] = "Audio";
+                r.ByKind[FileKind.Audio] = "Audio";
                 r.ByKind[FileKind.Photo] = "Images";
                 SetTemplate(FolderTemplate.ARollBRoll);
                 break;
             case "one":
                 foreach (var id in new[] { "dji-osmo-pocket", "panasonic-lumix", "dji-mic" }) r.ByProfile[id] = "Footage";
+                r.ByKind[FileKind.Audio] = "Footage";
                 r.ByKind[FileKind.Photo] = "Footage";
                 SetTemplate(FolderTemplate.OneFolder);
                 break;
@@ -249,6 +259,7 @@ public sealed partial class SettingsPageViewModel : PageViewModel
                 r.ByProfile.Remove("dji-osmo-pocket");
                 r.ByProfile.Remove("panasonic-lumix");
                 r.ByProfile.Remove("dji-mic");
+                r.ByKind[FileKind.Audio] = Routing.DefaultAudioFolder;
                 r.ByKind[FileKind.Photo] = "Images";
                 SetTemplate(FolderTemplate.MyTemplate);
                 break;

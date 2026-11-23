@@ -80,11 +80,13 @@ public sealed partial class WelcomePageViewModel : PageViewModel
             s.Routing.ByProfile["dji-osmo-pocket"] = "Video/A-roll";
             s.Routing.ByProfile["panasonic-lumix"] = "Video/B-roll";
             s.Routing.ByProfile["dji-mic"] = "Audio";
+            s.Routing.ByKind[Core.Media.FileKind.Audio] = "Audio";
         }
         else if (Structure == 2)
         {
             foreach (var id in new[] { "dji-osmo-pocket", "panasonic-lumix", "dji-mic" }) s.Routing.ByProfile[id] = "Footage";
             s.Routing.ByKind[Core.Media.FileKind.Photo] = "Footage";
+            s.Routing.ByKind[Core.Media.FileKind.Audio] = "Footage";
         }
         _ctx.Save();
         _ctx.Monitor.Refresh();
