@@ -72,7 +72,7 @@ public sealed class BackgroundController : IDisposable
 
     public void ShowWindow()
     {
-        if (OperatingSystem.IsMacOS()) Dock.ShowIcon();
+        if (OperatingSystem.IsMacOS()) DockIcon.Show();
         _window.Show();
         if (_window.WindowState == WindowState.Minimized) _window.WindowState = WindowState.Normal;
         _window.Activate();
@@ -81,7 +81,7 @@ public sealed class BackgroundController : IDisposable
     private void HideWindow()
     {
         _window.Hide();
-        if (OperatingSystem.IsMacOS()) Dock.HideIcon();
+        if (OperatingSystem.IsMacOS()) DockIcon.Hide();
     }
 
     private void OnWindowClosing(object? sender, WindowClosingEventArgs e)

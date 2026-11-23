@@ -9,12 +9,12 @@ namespace ShootDrop.Platform.Mac;
 /// regular app again so the window can come to the front.
 /// </summary>
 [SupportedOSPlatform("macos")]
-public static class Dock
+public static class DockIcon
 {
     private const string ObjC = "/usr/lib/libobjc.A.dylib";
     private const long Regular = 0, Accessory = 1;
 
-    public static void ShowIcon()
+    public static void Show()
     {
         var app = SharedApplication();
         if (app == IntPtr.Zero) return;
@@ -22,7 +22,7 @@ public static class Dock
         objc_msgSend_bool(app, sel_registerName("activateIgnoringOtherApps:"), true);
     }
 
-    public static void HideIcon()
+    public static void Hide()
     {
         var app = SharedApplication();
         if (app != IntPtr.Zero) objc_msgSend_long(app, sel_registerName("setActivationPolicy:"), Accessory);
