@@ -36,14 +36,29 @@ copies into *your* folder structure, and verifies every file with a checksum. Yo
 
 ## What it looks like
 
-<p align="center">
-  <img src="docs/images/wireframes/10-ready-window.png" width="300" alt="Ready to copy: one button copies with your last setup">
-  &nbsp;
-  <img src="docs/images/wireframes/02-main.png" width="520" alt="Main window: cards, dates, file types and the smart box">
-</p>
+<p align="center"><img src="docs/images/wireframes/02-main.png" alt="ShootDrop main window: cards, dates, file types and the smart box" width="100%"></p>
+<p align="center"><b>Main window</b>: pick cards, dates and file types, or type what you want in the smart box.</p>
 
-<p align="center"><sub>Left: the <b>Ready to copy</b> window the app opens on. Right: the main window.
-These are the design wireframes the app was built from; see <a href="docs/WIREFRAMES.md">all 10 screens</a>.</sub></p>
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/images/wireframes/10-ready-window.png" alt="Ready to copy" width="100%"><br><b>Ready to copy</b><br><sub>Opens on this. One button copies with your last setup.</sub></td>
+<td width="50%" valign="top"><img src="docs/images/wireframes/09-menu-bar.png" alt="Menu bar quick copy" width="100%"><br><b>Menu bar quick copy</b><br><sub>Copy from the menu bar without opening the window.</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/images/wireframes/03-review.png" alt="Review" width="100%"><br><b>Review</b><br><sub>What goes where, free space and safety checks before copying.</sub></td>
+<td width="50%" valign="top"><img src="docs/images/wireframes/04-copying.png" alt="Copying and verifying" width="100%"><br><b>Copying and verifying</b><br><sub>Progress per card. Every file is checked after it's copied.</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/images/wireframes/05-done.png" alt="Done" width="100%"><br><b>Done</b><br><sub>All files verified. Open in Finder, eject the cards.</sub></td>
+<td width="50%" valign="top"><img src="docs/images/wireframes/01-welcome.png" alt="First-run setup" width="100%"><br><b>First-run setup</b><br><sub>Where projects go, your folder structure, the optional AI helper.</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/images/wireframes/06-folders.png" alt="Folder structure editor" width="100%"><br><b>Folder structure editor</b><br><sub>Your template or A-roll / B-roll, and where each camera's files land.</sub></td>
+<td width="50%" valign="top"><img src="docs/images/wireframes/07-settings.png" alt="Settings" width="100%"><br><b>Settings</b><br><sub>Projects folder, cameras, file types, after-copy actions.</sub></td>
+</tr>
+</table>
+
+<sub>These are the design wireframes the app was built from (sample cards and numbers). More in <a href="docs/WIREFRAMES.md">docs/WIREFRAMES.md</a>.</sub>
 
 ## Who it's for
 
