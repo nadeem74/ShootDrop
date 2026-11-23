@@ -48,16 +48,13 @@ dotnet run --project src/ShootDrop.Cli -- help
 
 ## Backlog (in order)
 
-1. Done: builds and tests pass on macOS. Still to check: upgrade to Avalonia 12.
-2. Run the CLI against fake cards, then (with Nadeem) against his real cards: `plan` first, then `copy`.
-3. App: Settings screen (projects folder, template folder) instead of the CLI `config` step.
-4. App: full window (cards, dates, file types, smart box), matching the wireframes.
-5. App: unknown card → folder dropdown, remembered per card (FR-07).
-6. App: folder structure editor (FR-17/18) and saved setups (FR-19).
-7. Performance: replace the 3 s full re-scan with mount/unmount events + a cheap count; scan only on change.
-8. Card identity by volume UUID instead of name (`DetectedCard.CardId`).
-9. v0.2: menu bar (Avalonia TrayIcon), global shortcut + login item (`ShootDrop.Platform.Mac`), local AI smart box.
-10. Packaging: signed + notarised .dmg via GitHub Actions.
+1. Signed + notarised .dmg via GitHub Actions; push the repo to GitHub (fix commit email first).
+2. v0.2: global shortcut + start at login (`ShootDrop.Platform.Mac`), keep running in the menu bar.
+3. v0.2: local AI model for the smart box (ADR-005), eval set from RuleParserTests.
+4. Clip dates from file metadata instead of last-write time.
+5. Card identity by volume UUID instead of name.
+6. Multi-day copies: option for one project per day (FR-16).
+7. Upgrade to Avalonia 12 when stable for us.
 
 ## Links
 
