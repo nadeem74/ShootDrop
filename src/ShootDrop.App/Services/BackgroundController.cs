@@ -46,10 +46,13 @@ public sealed class BackgroundController : IDisposable
 
         _tray = new TrayIcon
         {
-            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ShootDrop/Assets/tray.png"))),
+            Icon = new WindowIcon(AssetLoader.Open(new Uri(TrayIconAsset))),
             ToolTipText = "ShootDrop",
             Menu = _menu,
         };
+        // macOS: a "template" icon is drawn in black and tinted by the system, so it is white on a dark
+        // menu bar and dark on a light one, and follows the theme as it changes (like Claude's own icon).
+        if (OperatingSystem.IsMacOS()) MacOSProperties.SetIsTemplateIcon(_tray, true);
         TrayIcon.SetIcons(app, new TrayIcons { _tray });
 
         _window.Closing += OnWindowClosing;
@@ -58,6 +61,11 @@ public sealed class BackgroundController : IDisposable
     }
 
     private BackgroundSettings Settings => _ctx.Settings.Background;
+
+    /// <summary>One-colour icon: a template on macOS; white elsewhere, where taskbars are usually dark.</summary>
+    private static string TrayIconAsset => OperatingSystem.IsMacOS()
+        ? "avares://ShootDrop/Assets/tray-template.png"
+        : "avares://ShootDrop/Assets/tray-white.png";
 
     private bool CopyRunning => _ctx.Shell.Current is CopyingPageViewModel;
 
