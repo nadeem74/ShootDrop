@@ -73,6 +73,8 @@ public partial class DateButton : UserControl
     {
         if (Label is null) return;
         Label.Text = SelectedDate is { } d ? d.ToString("ddd d MMM yyyy", CultureInfo.CurrentCulture) : Placeholder;
-        Label.Foreground = SelectedDate is null ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8A8C93")) : null;
+        // Grey placeholder; a chosen date uses the normal text colour (ClearValue, not null: null makes it invisible).
+        if (SelectedDate is null) Label.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#8A8C93"));
+        else Label.ClearValue(TextBlock.ForegroundProperty);
     }
 }
