@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>shootdrop</AssemblyName>
+    <RootNamespace>ShootDrop.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShootDrop.Core\ShootDrop.Core.csproj" />
+  </ItemGroup>
+
+</Project>

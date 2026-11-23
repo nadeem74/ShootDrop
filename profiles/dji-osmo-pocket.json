@@ -1,0 +1,9 @@
+{
+  "id": "dji-osmo-pocket",
+  "name": "DJI Osmo Pocket",
+  "defaultFolder": "Video/Pocket 4P",
+  "match": {
+    "filePrefixes": ["DJI_"],
+    "volumeNameContains": ["dji", "pocket", "osmo"]
+  }
+}

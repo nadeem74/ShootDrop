@@ -1,0 +1,8 @@
+{
+  "id": "dji-mic",
+  "name": "DJI Mic (audio recorder)",
+  "defaultFolder": "Audio/DJI Mic",
+  "match": {
+    "audioOnlyWithoutDcim": true
+  }
+}

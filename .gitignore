@@ -1,0 +1,15 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+.DS_Store
+TestResults/
+artifacts/
+*.part
+setup.log
+build.log
+test.log
+cards.log
+app.log

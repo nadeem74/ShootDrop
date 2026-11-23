@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ShootDrop.Core/ShootDrop.Core.csproj" />
+    <Project Path="src/ShootDrop.Cli/ShootDrop.Cli.csproj" />
+    <Project Path="src/ShootDrop.App/ShootDrop.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ShootDrop.Core.Tests/ShootDrop.Core.Tests.csproj" />
+  </Folder>
+</Solution>

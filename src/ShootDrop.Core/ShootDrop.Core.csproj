@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ShootDrop.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Hashing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Built-in camera profiles live in /profiles and are embedded here. -->
+    <EmbeddedResource Include="..\..\profiles\*.json" LogicalName="ShootDrop.Profiles.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ShootDrop.Core.Tests" />
+  </ItemGroup>
+
+</Project>

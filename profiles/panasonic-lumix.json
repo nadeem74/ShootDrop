@@ -1,0 +1,10 @@
+{
+  "id": "panasonic-lumix",
+  "name": "Panasonic Lumix",
+  "defaultFolder": "Video/Camera",
+  "match": {
+    "markerPaths": ["PRIVATE/PANASONIC"],
+    "dcimFolderContains": ["PANA", "LUMIX"],
+    "volumeNameContains": ["lumix", "pana"]
+  }
+}
