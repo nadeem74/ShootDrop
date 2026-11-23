@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ShootDrop.App.Services;
@@ -13,8 +12,7 @@ namespace ShootDrop.App;
 
 public partial class App : Application
 {
-    private ShellViewModel? _shell;
-    private MainWindow? _window;
+    private BackgroundController? _background;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -28,46 +26,22 @@ public partial class App : Application
             var service = new ShootDropService(volumes, ProfileCatalog.Load(store.ProfilesDirectory));
             var monitor = new CardMonitor(service, settings, volumes);
 
-            _window = new MainWindow();
-            var platform = new DesktopPlatform(() => _window);
+            // No desktop.MainWindow: ShootDrop decides itself when the window shows, and keeps running
+            // in the menu bar when it is closed (ShutdownMode.OnExplicitShutdown in Program).
+            var window = new MainWindow();
+            var platform = new DesktopPlatform(() => window);
             var ctx = new ShootDropContext(service, store, settings, platform, monitor);
-            _shell = new ShellViewModel(ctx);
-            _window.DataContext = _shell;
-            desktop.MainWindow = _window;
-            _shell.Start();
+            var shell = new ShellViewModel(ctx);
+            window.DataContext = shell;
+
+            _background = new BackgroundController(this, window, ctx, () => desktop.Shutdown());
+            ctx.Background = _background;
+            desktop.Exit += (_, _) => _background.Dispose();
+
+            shell.Start();
+            _background.Start(Program.StartHidden);
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private void ShowWindow()
-    {
-        if (_window is null) return;
-        _window.Show();
-        _window.WindowState = WindowState.Normal;
-        _window.Activate();
-    }
-
-    private void OnTrayReady(object? sender, EventArgs e)
-    {
-        _shell?.GoReady();
-        ShowWindow();
-    }
-
-    private void OnTrayMain(object? sender, EventArgs e)
-    {
-        _shell?.GoMain();
-        ShowWindow();
-    }
-
-    private void OnTraySettings(object? sender, EventArgs e)
-    {
-        _shell?.GoSettings();
-        ShowWindow();
-    }
-
-    private void OnTrayQuit(object? sender, EventArgs e)
-    {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) desktop.Shutdown();
     }
 }

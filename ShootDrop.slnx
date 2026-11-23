@@ -3,6 +3,7 @@
     <Project Path="src/ShootDrop.Core/ShootDrop.Core.csproj" />
     <Project Path="src/ShootDrop.Cli/ShootDrop.Cli.csproj" />
     <Project Path="src/ShootDrop.App/ShootDrop.App.csproj" />
+    <Project Path="src/ShootDrop.Platform.Mac/ShootDrop.Platform.Mac.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ShootDrop.Core.Tests/ShootDrop.Core.Tests.csproj" />

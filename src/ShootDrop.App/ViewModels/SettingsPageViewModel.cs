@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShootDrop.App.Services;
+using ShootDrop.Core.Background;
 using ShootDrop.Core.Cards;
 using ShootDrop.Core.Media;
 using ShootDrop.Core.Projects;
@@ -53,7 +54,7 @@ public sealed class RememberedCard(string card, string folder, Action<string> fo
 
 public sealed record ExtensionGroup(string Kind, string Extensions);
 
-/// <summary>Settings: General, Project folders (FR-17/18), Cameras, File types, Shortcut (v0.2).</summary>
+/// <summary>Settings: General, Project folders (FR-17/18), Cameras, File types, Shortcut &amp; background (FR-21/23/24).</summary>
 public sealed partial class SettingsPageViewModel : PageViewModel
 {
     public const string DontCopy = "Don't copy";
@@ -122,6 +123,56 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         _ctx.Settings.TemplateDirectory = null;
         _ctx.Save();
         OnPropertyChanged(nameof(HasTemplateDirectory));
+    }
+
+    // ---- Shortcut & background (v0.2) -----------------------------------------------------------
+    public IReadOnlyList<string> ArrivalChoices { get; } =
+        ["Show Ready to copy", "Copy automatically with the last setup", "Do nothing"];
+
+    public bool KeepRunningInMenuBar
+    {
+        get => _ctx.Settings.Background.KeepRunningInMenuBar;
+        set { _ctx.Settings.Background.KeepRunningInMenuBar = value; _ctx.Save(); OnPropertyChanged(); }
+    }
+
+    public bool StartAtLogin
+    {
+        get => _ctx.Settings.Background.StartAtLogin;
+        set { _ctx.Background?.SetStartAtLogin(value); OnPropertyChanged(); }
+    }
+
+    public bool CanStartAtLogin => BackgroundController.CanStartAtLogin;
+    public bool CannotStartAtLogin => !CanStartAtLogin;
+
+    public bool ShortcutEnabled
+    {
+        get => _ctx.Settings.Background.ShortcutEnabled;
+        set
+        {
+            _ctx.Settings.Background.ShortcutEnabled = value;
+            _ctx.Save();
+            _ctx.Background?.ApplyShortcut();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ShortcutStatus));
+        }
+    }
+
+    public string ShortcutStatus =>
+        !OperatingSystem.IsMacOS() ? "The shortcut is macOS-only for now."
+        : !ShortcutEnabled ? "Off."
+        : _ctx.Background?.ShortcutActive == true ? "Ready: press ⌃⌥⌘C in any app."
+        : "Another app is using ⌃⌥⌘C, so ShootDrop couldn't take it.";
+
+    public int ArrivalIndex
+    {
+        get => (int)_ctx.Settings.Background.WhenCardsPluggedIn;
+        set
+        {
+            _ctx.Settings.Background.WhenCardsPluggedIn = (CardArrivalAction)Math.Clamp(value, 0, 2);
+            _ctx.Save();
+            _ctx.Background?.BuildMenu();
+            OnPropertyChanged();
+        }
     }
 
     // ---- Project folders -------------------------------------------------------------------

@@ -27,6 +27,9 @@ public sealed class ShootDropContext
     public CardMonitor Monitor { get; }
     public ShellViewModel Shell { get; set; } = null!;
 
+    /// <summary>Menu bar, shortcut and login item; null in design-time previews.</summary>
+    public BackgroundController? Background { get; set; }
+
     public DateOnly Today => Service.Today;
 
     public void Save() => Store.Save(Settings);

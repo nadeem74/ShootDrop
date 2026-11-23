@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShootDrop.Core\ShootDrop.Core.csproj" />
+    <ProjectReference Include="..\ShootDrop.Platform.Mac\ShootDrop.Platform.Mac.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using ShootDrop.Core.Background;
 using ShootDrop.Core.Media;
 using ShootDrop.Core.Projects;
 
@@ -20,7 +21,7 @@ public sealed class AppSettings
     /// <summary>Settings format version, for upgrading older settings.json files.</summary>
     public int Version { get; set; }
 
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     /// <summary>Brings settings saved by an older ShootDrop up to date.</summary>
     public void Upgrade()
@@ -31,6 +32,7 @@ public sealed class AppSettings
             // the Pocket's .AAC mic tracks landed in Video/Pocket 4P).
             Routing.ByKind.TryAdd(FileKind.Audio, Routing.DefaultAudioFolder);
         }
+        // v3: menu bar options (Background). Missing in older files, so the defaults apply; nothing to move.
         Version = CurrentVersion;
     }
 
@@ -52,6 +54,9 @@ public sealed class AppSettings
 
     /// <summary>After copying: eject the cards that were copied.</summary>
     public bool EjectWhenDone { get; set; }
+
+    /// <summary>Menu bar, start at login, shortcut, what to do when cards are plugged in (v0.2).</summary>
+    public BackgroundSettings Background { get; set; } = new();
 
     /// <summary>Whether the smart box is switched on in the main window.</summary>
     public bool SmartBoxOn { get; set; } = true;

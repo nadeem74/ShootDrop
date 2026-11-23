@@ -203,25 +203,36 @@
         </ScrollViewer>
       </TabItem>
 
-      <!-- Shortcut & background -->
+      <!-- Shortcut & background (FR-21, FR-23, FR-24) -->
       <TabItem Header="Shortcut &amp; background">
-        <StackPanel Spacing="12" MaxWidth="700" HorizontalAlignment="Left">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <ScrollViewer>
+          <StackPanel Spacing="18" MaxWidth="700" HorizontalAlignment="Left">
             <TextBlock Classes="h2" Text="Shortcut and background" />
-            <Border Background="#FFF1D6" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
-              <TextBlock Text="Planned for v0.2" FontSize="12" FontWeight="SemiBold" Foreground="#8A5A00" />
-            </Border>
-          </StackPanel>
-          <TextBlock Classes="muted" FontSize="14"
-                     Text="Copy without opening the app: a keyboard shortcut from anywhere on your Mac, start at login, and keep running in the menu bar. The menu bar icon already works while ShootDrop is open." />
-          <Border Classes="card">
-            <StackPanel Spacing="8" Opacity="0.6">
-              <CheckBox Content="Start ShootDrop when I log in" IsEnabled="False" />
-              <CheckBox Content="Keep running in the menu bar when the window is closed" IsEnabled="False" />
-              <TextBlock Text="Keyboard shortcut: ⌃⌥⌘C → show the Ready to copy window" />
+            <TextBlock Classes="muted" FontSize="14" TextWrapping="Wrap"
+                       Text="Copy without opening the app. ShootDrop waits quietly in the menu bar and uses almost nothing until a card is plugged in." />
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Margin="0" Text="Menu bar" />
+              <CheckBox IsChecked="{Binding KeepRunningInMenuBar}" Content="Keep running in the menu bar when the window is closed" />
+              <CheckBox IsChecked="{Binding StartAtLogin}" IsEnabled="{Binding CanStartAtLogin}" Content="Start ShootDrop when I log in (opens in the menu bar)" />
+              <TextBlock Classes="muted" IsVisible="{Binding CannotStartAtLogin}" TextWrapping="Wrap"
+                         Text="Start at login works when ShootDrop runs as ShootDrop.app on a Mac." />
             </StackPanel>
-          </Border>
-        </StackPanel>
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Margin="0" Text="When cards are plugged in" />
+              <ComboBox ItemsSource="{Binding ArrivalChoices}" SelectedIndex="{Binding ArrivalIndex}" MinWidth="340" />
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Automatic copies use your last setup and today's date as the project name. They start only when every plugged-in card is a camera ShootDrop knows and there is something to copy; otherwise Ready to copy opens so you can decide. Every file is still verified." />
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Margin="0" Text="Keyboard shortcut" />
+              <CheckBox IsChecked="{Binding ShortcutEnabled}" Content="⌃⌥⌘C opens Ready to copy from any app" />
+              <TextBlock Classes="muted" Text="{Binding ShortcutStatus}" TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
     </TabControl>
 
