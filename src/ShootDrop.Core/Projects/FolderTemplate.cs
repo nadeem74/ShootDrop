@@ -49,6 +49,50 @@ public sealed record FolderTemplate(string Name, IReadOnlyList<string> Folders)
                 && !x.StartsWith(f + "/", StringComparison.OrdinalIgnoreCase)).ToList(),
         };
     }
+
+    /// <summary>
+    /// Moves a folder (and everything inside it) into <paramref name="newParent"/>; null or "" means the top
+    /// level. Used by drag and drop in the folder editor. Throws <see cref="InvalidOperationException"/> with a
+    /// plain-English reason when the move isn't possible.
+    /// </summary>
+    public FolderTemplate Move(string folder, string? newParent, out string newPath)
+    {
+        var from = folder.Trim('/');
+        var parent = (newParent ?? "").Trim('/');
+        var name = from.Split('/')[^1];
+        var to = parent.Length == 0 ? name : parent + "/" + name;
+        newPath = to;
+
+        if (from.Length == 0) throw new InvalidOperationException("Pick a folder to move.");
+        if (IsSameOrInside(parent, from)) throw new InvalidOperationException($"“{name}” can't go inside itself.");
+        if (string.Equals(to, from, StringComparison.OrdinalIgnoreCase)) return this; // dropped where it already is
+        if (AllFolders().Any(f => string.Equals(f, to, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException($"There is already a “{name}” folder there.");
+
+        return this with { Folders = Folders.Select(f => Rebase(f, from, to)).ToList() };
+    }
+
+    /// <summary>"Video/Camera" with "Video" moved to "Footage/Video" becomes "Footage/Video/Camera"; other paths are unchanged.</summary>
+    public static string Rebase(string path, string from, string to)
+    {
+        var p = path.Trim('/');
+        if (string.Equals(p, from, StringComparison.OrdinalIgnoreCase)) return to;
+        return p.StartsWith(from + "/", StringComparison.OrdinalIgnoreCase) ? to + p[from.Length..] : p;
+    }
+
+    /// <summary>Every folder in the project, including parents that are only implied by a deeper path.</summary>
+    public IReadOnlyList<string> AllFolders() =>
+        Folders.SelectMany(f =>
+            {
+                var parts = f.Trim('/').Split('/');
+                return Enumerable.Range(1, parts.Length).Select(i => string.Join('/', parts[..i]));
+            })
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+    private static bool IsSameOrInside(string path, string folder) =>
+        string.Equals(path, folder, StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase);
 }
 
 public static class ProjectCreator

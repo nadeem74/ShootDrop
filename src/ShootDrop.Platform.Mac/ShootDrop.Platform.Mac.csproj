@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- macOS-only helpers (ADR-006). No UI framework here: plain P/Invoke into macOS.
+       Every public entry point is [SupportedOSPlatform("macos")] and callers check OperatingSystem.IsMacOS(). -->
+  <PropertyGroup>
+    <RootNamespace>ShootDrop.Platform.Mac</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+</Project>

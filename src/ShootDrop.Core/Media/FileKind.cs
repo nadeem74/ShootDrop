@@ -67,5 +67,18 @@ public sealed class FileTypeCatalog
         return new FileTypeCatalog(copy);
     }
 
-    private static string Normalize(string ext) => ext.StartsWith('.') ? ext : "." + ext;
+    /// <summary>Returns a copy without an extension, so files of that type are never copied.</summary>
+    public FileTypeCatalog Without(string extension)
+    {
+        var copy = new Dictionary<string, FileKind>(_map, StringComparer.OrdinalIgnoreCase);
+        copy.Remove(Normalize(extension));
+        return new FileTypeCatalog(copy);
+    }
+
+    /// <summary>".BRAW", "braw" and " Braw " all become ".braw".</summary>
+    public static string Normalize(string ext)
+    {
+        var e = ext.Trim().ToLowerInvariant();
+        return e.StartsWith('.') ? e : "." + e;
+    }
 }

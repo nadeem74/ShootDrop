@@ -87,7 +87,12 @@ Safety rules are written into the architecture ([ADR-003](docs/adr/0003-architec
 - **Pick the day.** Today, yesterday, the last N days, or any date range.
 - **One-click repeat.** Save setups like "Shoot day" or "Pocket vlog". The app opens on a small **Ready to copy** window with one **Copy now** button.
 - **Talk to it.** Type `all cards, yesterday for Sinhagad trip` or `kal ka sab footage with photos` (yes, Hinglish works).
-- **Menu bar icon** for quick access, plus Open in Finder and Eject cards when the copy finishes.
+- **Lives in your menu bar.** Close the window and ShootDrop keeps waiting quietly, using almost nothing. Copy now right from the menu.
+- **Pops up when you plug in a card** (or copies automatically, or does nothing: your choice).
+- **Global shortcut**, ⌃⌥⌘C by default, change it to anything you like. **Start at login** if you want.
+- **Add your own cameras in the app.** Plug in the card, click *Fill in from this card*, save. No config files.
+- **Drag and drop folders** to reshape your project, and drop a camera onto a folder to send its files there.
+- Open in Finder and Eject cards when the copy finishes.
 - **CLI included.** Same engine, scriptable: `shootdrop copy --date yesterday --name "Goa trip"`.
 
 ## AI: where it is and where it's going 🤖
@@ -154,7 +159,9 @@ shootdrop ask  "Pocket only, last 3 days"                   # test the smart box
 
 ## Add your camera
 
-Drop a JSON file in `profiles/` (or in `~/Library/Application Support/ShootDrop/profiles/` on your machine):
+Easiest: **Settings › Cameras › + Add camera**, plug in the card and click *Fill in from this card*.
+
+Or drop a JSON file in `profiles/` (or in `~/Library/Application Support/ShootDrop/profiles/` on your machine):
 
 ```json
 {
@@ -211,8 +218,8 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first; the one hard rule is that footage
 
 ## Roadmap
 
-See [docs/ROADMAP.md](docs/ROADMAP.md). Next up: global keyboard shortcut, start at login and menu-bar-only mode,
-the local AI model, a signed and notarised macOS build, and community-tested Linux and Windows releases.
+See [docs/ROADMAP.md](docs/ROADMAP.md). v0.2 brought the menu bar, shortcut, start at login and the in-app camera editor.
+Next up: the local AI model, a signed and notarised macOS build, and community-tested Linux and Windows releases.
 
 ## Built by
 

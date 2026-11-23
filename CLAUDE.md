@@ -30,7 +30,8 @@ dotnet run --project src/ShootDrop.Cli -- help
   Projects (FolderTemplate, Routing), Copying (planner, engine, report), Settings, SmartBox (rule parser),
   `ShootDropService` (the one entry point for front ends).
 - `src/ShootDrop.Cli`: `shootdrop` command, thin.
-- `src/ShootDrop.App`: Avalonia app. ShellViewModel hosts pages: Welcome, Ready, Main, Review, Copying, Done, Settings.
+- `src/ShootDrop.Platform.Mac`: macOS-only interop (global shortcut, login item, Dock icon). ADR-006.
+- `src/ShootDrop.App`: Avalonia app. `Services/BackgroundController` runs the menu bar, shortcut and card arrival. ShellViewModel hosts pages: Welcome, Ready, Main, Review, Copying, Done, Settings.
 - `tests/ShootDrop.Core.Tests`: xUnit with fake cards in temp folders (`FakeCard.cs`).
 - `profiles/*.json`: camera profiles, embedded into Core.
 - `docs/adr`: decisions. `docs/PRD.md`: requirements and status. `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/AI.md`.

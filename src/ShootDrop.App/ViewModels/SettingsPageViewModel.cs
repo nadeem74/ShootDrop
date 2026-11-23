@@ -2,14 +2,18 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShootDrop.App.Services;
+using ShootDrop.Core.Background;
 using ShootDrop.Core.Cards;
 using ShootDrop.Core.Media;
 using ShootDrop.Core.Projects;
 
 namespace ShootDrop.App.ViewModels;
 
-public sealed class FolderRow(string name, string path, int depth, string feeds, Action<string> remove)
+public sealed partial class FolderRow(string name, string path, int depth, string feeds, Action<string> remove) : ObservableObject
 {
+    /// <summary>True while something is dragged over this folder (drag and drop in the folder editor).</summary>
+    [ObservableProperty] private bool _isDropTarget;
+
     public string Name { get; } = name;
     public string Path { get; } = path;
     public Avalonia.Thickness Indent { get; } = new(depth * 22, 0, 0, 0);
@@ -42,7 +46,26 @@ public sealed partial class RouteRow : ObservableObject
     partial void OnSelectedChanged(string? value) => _changed(this);
 }
 
-public sealed record ProfileRow(string Name, string RecognisedBy, string Folder);
+/// <summary>One camera in Settings › Cameras, with Edit and (for cameras the user added or changed) Delete/Reset.</summary>
+public sealed class ProfileRow(CameraProfile profile, string recognisedBy, string folder, bool builtIn, bool edited,
+    Action<ProfileRow> edit, Action<ProfileRow> delete)
+{
+    public CameraProfile Profile { get; } = profile;
+    public string Name => Profile.Name;
+    public string RecognisedBy { get; } = recognisedBy;
+    public string Folder { get; } = folder;
+    public string Badge { get; } = builtIn ? (edited ? "Built-in, edited" : "Built-in") : "Added by you";
+    public bool CanDelete { get; } = !builtIn || edited;
+    public string DeleteLabel { get; } = builtIn ? "Reset" : "Delete";
+    public IRelayCommand EditCommand => new RelayCommand(() => edit(this));
+    public IRelayCommand DeleteCommand => new RelayCommand(() => delete(this));
+}
+
+/// <summary>A plugged-in drive the camera editor can read to fill in the form.</summary>
+public sealed record CardChoice(string Name, string Path)
+{
+    public override string ToString() => Name;
+}
 
 public sealed class RememberedCard(string card, string folder, Action<string> forget)
 {
@@ -51,9 +74,16 @@ public sealed class RememberedCard(string card, string folder, Action<string> fo
     public IRelayCommand ForgetCommand { get; } = new RelayCommand(() => forget(card));
 }
 
-public sealed record ExtensionGroup(string Kind, string Extensions);
+public sealed record ExtensionGroup(string Kind, IReadOnlyList<ExtensionChip> Items);
 
-/// <summary>Settings: General, Project folders (FR-17/18), Cameras, File types, Shortcut (v0.2).</summary>
+/// <summary>One extension shown as a chip with a remove button.</summary>
+public sealed class ExtensionChip(string extension, Action<string> remove)
+{
+    public string Name { get; } = extension.TrimStart('.').ToUpperInvariant();
+    public IRelayCommand RemoveCommand => new RelayCommand(() => remove(extension));
+}
+
+/// <summary>Settings: General, Project folders (FR-17/18), Cameras, File types, Shortcut &amp; background (FR-21/23/24).</summary>
 public sealed partial class SettingsPageViewModel : PageViewModel
 {
     public const string DontCopy = "Don't copy";
@@ -122,6 +152,146 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         _ctx.Settings.TemplateDirectory = null;
         _ctx.Save();
         OnPropertyChanged(nameof(HasTemplateDirectory));
+    }
+
+    // ---- Shortcut & background (v0.2) -----------------------------------------------------------
+    public IReadOnlyList<string> ArrivalChoices { get; } =
+        ["Show Ready to copy", "Copy automatically with the last setup", "Do nothing"];
+
+    public bool KeepRunningInMenuBar
+    {
+        get => _ctx.Settings.Background.KeepRunningInMenuBar;
+        set { _ctx.Settings.Background.KeepRunningInMenuBar = value; _ctx.Save(); OnPropertyChanged(); }
+    }
+
+    public bool StartAtLogin
+    {
+        get => _ctx.Settings.Background.StartAtLogin;
+        set { _ctx.Background?.SetStartAtLogin(value); OnPropertyChanged(); }
+    }
+
+    public bool CanStartAtLogin => BackgroundController.CanStartAtLogin;
+    public bool CannotStartAtLogin => !CanStartAtLogin;
+
+    public bool ShortcutEnabled
+    {
+        get => _ctx.Settings.Background.ShortcutEnabled;
+        set
+        {
+            _ctx.Settings.Background.ShortcutEnabled = value;
+            _ctx.Save();
+            _ctx.Background?.ApplyShortcut();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ShortcutStatus));
+        }
+    }
+
+    public Shortcut Shortcut => _ctx.Settings.Background.Shortcut;
+    public IReadOnlyList<string> ShortcutKeys => Shortcut.Parts();
+    public string ShortcutLabel => $"{Shortcut} opens Ready to copy from any app";
+    public bool IsDefaultShortcut => Shortcut == Shortcut.Default;
+    public bool CanResetShortcut => !IsDefaultShortcut && !IsRecording;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NotRecording), nameof(CanResetShortcut))]
+    private bool _isRecording;
+
+    public bool NotRecording => !IsRecording;
+
+    [ObservableProperty] private string _recordHint = "";
+    [ObservableProperty] private string _shortcutMessage = "";
+
+    public string ShortcutStatus =>
+        !OperatingSystem.IsMacOS() ? "The shortcut works on macOS for now."
+        : !ShortcutEnabled ? "Off."
+        : _ctx.Background?.ShortcutActive == true ? $"Ready: press {Shortcut} in any app."
+        : $"Another app is using {Shortcut}. Choose a different shortcut.";
+
+    [RelayCommand]
+    private void ChangeShortcut()
+    {
+        ShortcutMessage = "";
+        RecordHint = "Press the new shortcut now…  (Esc to cancel)";
+        IsRecording = true;
+        _ctx.Background?.PauseShortcut(true); // so the old shortcut doesn't fire while recording
+    }
+
+    [RelayCommand]
+    private void CancelRecording() => StopRecording();
+
+    [RelayCommand]
+    private void ResetShortcut() => TrySave(Shortcut.Default);
+
+    private void StopRecording()
+    {
+        if (!IsRecording) return;
+        IsRecording = false;
+        _ctx.Background?.PauseShortcut(false);
+        RefreshShortcut();
+    }
+
+    /// <summary>Called by the view for each key press while recording. Returns true if the key was used.</summary>
+    public bool Record(string? key, ShortcutModifiers modifiers, bool escape)
+    {
+        if (!IsRecording) return false;
+        if (escape && modifiers == ShortcutModifiers.None)
+        {
+            StopRecording();
+            return true;
+        }
+        if (key is null) return modifiers != ShortcutModifiers.None; // only ⌃⌥⇧⌘ so far: keep waiting
+        var candidate = new Shortcut(modifiers, key);
+        if (candidate.Problem is { } problem)
+        {
+            RecordHint = $"{candidate}: {problem}";
+            return true;
+        }
+        IsRecording = false;
+        _ctx.Background?.PauseShortcut(false);
+        TrySave(candidate);
+        return true;
+    }
+
+    /// <summary>Saves the shortcut only if macOS accepts it; otherwise keeps the old one.</summary>
+    private void TrySave(Shortcut shortcut)
+    {
+        var bg = _ctx.Settings.Background;
+        var old = bg.Shortcut;
+        bg.Shortcut = shortcut;
+        var ok = _ctx.Background?.ApplyShortcut() ?? true;
+        if (!ok && OperatingSystem.IsMacOS() && bg.ShortcutEnabled)
+        {
+            bg.Shortcut = old;
+            _ctx.Background?.ApplyShortcut();
+            ShortcutMessage = $"{shortcut} is already used by another app or by macOS. Try another one.";
+        }
+        else
+        {
+            _ctx.Save();
+            ShortcutMessage = shortcut == old ? "" : $"Saved. {shortcut} now opens Ready to copy.";
+        }
+        RefreshShortcut();
+    }
+
+    private void RefreshShortcut()
+    {
+        foreach (var name in new[] { nameof(Shortcut), nameof(ShortcutKeys), nameof(ShortcutLabel), nameof(IsDefaultShortcut),
+                     nameof(CanResetShortcut), nameof(ShortcutStatus) })
+            OnPropertyChanged(name);
+    }
+
+    public override void OnHidden() => StopRecording();
+
+    public int ArrivalIndex
+    {
+        get => (int)_ctx.Settings.Background.WhenCardsPluggedIn;
+        set
+        {
+            _ctx.Settings.Background.WhenCardsPluggedIn = (CardArrivalAction)Math.Clamp(value, 0, 2);
+            _ctx.Save();
+            _ctx.Background?.BuildMenu();
+            OnPropertyChanged();
+        }
     }
 
     // ---- Project folders -------------------------------------------------------------------
@@ -223,6 +393,72 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         LoadFolders();
     }
 
+    // ---- Drag and drop in the folder tree ---------------------------------------------------------
+    public const string ProjectRootTarget = "";
+
+    [ObservableProperty] private string _folderMessage = "";
+
+    /// <summary>True while something is dragged over the project itself (move to the top level).</summary>
+    [ObservableProperty] private bool _rootIsDropTarget;
+
+    /// <summary>A folder was dropped on <paramref name="target"/> (a folder path, or "" for the project itself).</summary>
+    public void MoveFolder(string folder, string target)
+    {
+        var routesBefore = SourceRoutes();
+        FolderTemplate moved;
+        string newPath;
+        try
+        {
+            moved = _ctx.Settings.Template.Move(folder, target, out newPath);
+        }
+        catch (InvalidOperationException e)
+        {
+            FolderMessage = e.Message;
+            return;
+        }
+        if (ReferenceEquals(moved, _ctx.Settings.Template)) return;
+
+        // Everything that was going into the moved folder follows it, including cameras that only used their
+        // profile's default folder (written down explicitly now, so they don't recreate the old folder).
+        var r = _ctx.Settings.Routing;
+        foreach (var route in routesBefore)
+        {
+            if (route.Folder.Length == 0) continue;
+            var rebased = FolderTemplate.Rebase(route.Folder, folder, newPath);
+            if (rebased != route.Folder.Trim('/')) SetRoute(route.Key, rebased);
+        }
+        foreach (var (card, value) in r.ByCard.ToList()) r.ByCard[card] = FolderTemplate.Rebase(value, folder, newPath);
+
+        FolderMessage = $"Moved “{folder.Split('/')[^1]}” to {(target.Length == 0 ? "the top of the project" : "“" + target + "”")}.";
+        SetTemplate(moved with { Name = "Custom" });
+    }
+
+    /// <summary>A source (camera, card or file type) was dropped on a folder: its files go there from now on.</summary>
+    public void RouteToFolder(string routeKey, string target)
+    {
+        if (target.Length == 0)
+        {
+            FolderMessage = "Drop it on a folder, not on the project itself.";
+            return;
+        }
+        var row = Routes.FirstOrDefault(x => x.Key == routeKey);
+        if (row is null) return;
+        row.Selected = target; // OnRouteChanged saves and refreshes
+        FolderMessage = $"{row.Source} now goes to {Format.Folder(target)}.";
+    }
+
+    private void SetRoute(string routeKey, string folder)
+    {
+        var r = _ctx.Settings.Routing;
+        var (type, key) = (routeKey.Split(':', 2)[0], routeKey.Split(':', 2)[1]);
+        switch (type)
+        {
+            case "profile": r.ByProfile[key] = folder; break;
+            case "card": r.ByCard[key] = folder; break;
+            case "kind": r.ByKind[Enum.Parse<FileKind>(key)] = folder; break;
+        }
+    }
+
     private void RemoveFolder(string path) => SetTemplate(_ctx.Settings.Template.Without(path) with { Name = "Custom" });
 
     [RelayCommand]
@@ -274,20 +510,40 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         SetTemplate(FolderTemplate.FromDirectory(path));
     }
 
-    // ---- Cameras ---------------------------------------------------------------------------
+    // ---- Cameras: list, add, edit, delete -------------------------------------------------------
     public ObservableCollection<ProfileRow> Profiles { get; } = [];
     public ObservableCollection<RememberedCard> Remembered { get; } = [];
     public bool HasRemembered => Remembered.Count > 0;
 
+    private string ProfilesDir => _ctx.Store.ProfilesDirectory;
+
     private void LoadCameras()
     {
         Profiles.Clear();
-        foreach (var p in ProfileCatalog.Load(_ctx.Store.ProfilesDirectory))
-            Profiles.Add(new ProfileRow(p.Name, Describe(p.Match), Format.Folder(_ctx.Settings.Routing.ByProfile.GetValueOrDefault(p.Id, p.DefaultFolder))));
+        var userIds = UserProfileIds();
+        foreach (var p in ProfileCatalog.Load(ProfilesDir).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase))
+        {
+            var builtIn = ProfileCatalog.IsBuiltIn(p.Id);
+            Profiles.Add(new ProfileRow(p, Describe(p.Match),
+                Format.Folder(_ctx.Settings.Routing.ByProfile.GetValueOrDefault(p.Id, p.DefaultFolder)),
+                builtIn, builtIn && userIds.Contains(p.Id), EditCamera, DeleteCamera));
+        }
         Remembered.Clear();
         foreach (var (card, folder) in _ctx.Settings.Routing.ByCard) Remembered.Add(new RememberedCard(card, folder, Forget));
         OnPropertyChanged(nameof(HasRemembered));
     }
+
+    private HashSet<string> UserProfileIds()
+    {
+        var builtIn = ProfileCatalog.BuiltIn().ToDictionary(p => p.Id, StringComparer.OrdinalIgnoreCase);
+        return ProfileCatalog.Load(ProfilesDir)
+            .Where(p => !builtIn.TryGetValue(p.Id, out var b) || !SameProfile(b, p))
+            .Select(p => p.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool SameProfile(CameraProfile a, CameraProfile b) =>
+        a.Name == b.Name && a.DefaultFolder == b.DefaultFolder && Describe(a.Match) == Describe(b.Match)
+        && a.Match.VolumeNameContains.SequenceEqual(b.Match.VolumeNameContains);
 
     private static string Describe(ProfileMatch m)
     {
@@ -296,7 +552,8 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         if (m.FilePrefixes.Length > 0) parts.Add(string.Join(", ", m.FilePrefixes) + " file names");
         if (m.DcimFolderContains.Length > 0) parts.Add("DCIM folders with " + string.Join("/", m.DcimFolderContains));
         if (m.AudioOnlyWithoutDcim) parts.Add("audio files, no DCIM folder");
-        return parts.Count == 0 ? "card name" : string.Join("; ", parts);
+        if (m.VolumeNameContains.Length > 0) parts.Add("card named " + string.Join("/", m.VolumeNameContains));
+        return parts.Count == 0 ? "nothing yet" : string.Join("; ", parts);
     }
 
     private void Forget(string card)
@@ -307,13 +564,172 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         LoadFolders();
     }
 
-    [RelayCommand] private void OpenProfilesFolder()
+    // The editor form
+    private string? _editingId;
+    [ObservableProperty] private bool _isEditingCamera;
+    [ObservableProperty] private string _cameraEditorTitle = "";
+    [ObservableProperty] private string _camName = "";
+    [ObservableProperty] private string _camFolder = "";
+    [ObservableProperty] private string _camVolume = "";
+    [ObservableProperty] private string _camDcim = "";
+    [ObservableProperty] private string _camPrefixes = "";
+    [ObservableProperty] private string _camMarkers = "";
+    [ObservableProperty] private bool _camAudioOnly;
+    [ObservableProperty] private string _camError = "";
+    [ObservableProperty] private CardChoice? _selectedCard;
+    [ObservableProperty] private string? _camFolderPick;
+    public ObservableCollection<CardChoice> PluggedCards { get; } = [];
+    public ObservableCollection<string> FolderChoices { get; } = [];
+    public bool HasPluggedCards => PluggedCards.Count > 0;
+    public bool NoPluggedCards => PluggedCards.Count == 0;
+    public bool NotEditingCamera => !IsEditingCamera;
+
+    partial void OnIsEditingCameraChanged(bool value) => OnPropertyChanged(nameof(NotEditingCamera));
+
+    partial void OnCamFolderPickChanged(string? value)
     {
-        Directory.CreateDirectory(_ctx.Store.ProfilesDirectory);
-        _ctx.Platform.OpenFolder(_ctx.Store.ProfilesDirectory);
+        if (!string.IsNullOrEmpty(value)) CamFolder = value;
     }
 
-    // ---- File types ------------------------------------------------------------------------
+    [RelayCommand]
+    private void AddCamera() => OpenEditor(null);
+
+    private void EditCamera(ProfileRow row) => OpenEditor(row.Profile);
+
+    private void OpenEditor(CameraProfile? p)
+    {
+        _editingId = p?.Id;
+        CameraEditorTitle = p is null ? "Add a camera" : $"Edit {p.Name}";
+        CamName = p?.Name ?? "";
+        CamFolder = p is null ? "" : _ctx.Settings.Routing.ByProfile.GetValueOrDefault(p.Id, p.DefaultFolder);
+        FillMatch(p?.Match ?? new ProfileMatch());
+        CamError = "";
+        CamFolderPick = null;
+
+        FolderChoices.Clear();
+        foreach (var f in _ctx.Settings.Template.AllFolders().Order(StringComparer.OrdinalIgnoreCase)) FolderChoices.Add(f);
+
+        PluggedCards.Clear();
+        try
+        {
+            var projects = _ctx.Settings.ProjectsRoot;
+            foreach (var v in new SystemVolumeProvider().List())
+                if (projects.Length == 0 || !projects.StartsWith(v.Path, StringComparison.OrdinalIgnoreCase))
+                    PluggedCards.Add(new CardChoice(v.Name, v.Path));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+        }
+        SelectedCard = PluggedCards.FirstOrDefault();
+        OnPropertyChanged(nameof(HasPluggedCards));
+        OnPropertyChanged(nameof(NoPluggedCards));
+        IsEditingCamera = true;
+    }
+
+    private void FillMatch(ProfileMatch m)
+    {
+        CamVolume = string.Join(", ", m.VolumeNameContains);
+        CamDcim = string.Join(", ", m.DcimFolderContains);
+        CamPrefixes = string.Join(", ", m.FilePrefixes);
+        CamMarkers = string.Join(", ", m.MarkerPaths);
+        CamAudioOnly = m.AudioOnlyWithoutDcim;
+    }
+
+    /// <summary>Reads the chosen card (names only, read-only) and fills in how to recognise it.</summary>
+    [RelayCommand]
+    private async Task FillFromCardAsync()
+    {
+        if (SelectedCard is not { } card) return;
+        var types = _ctx.Settings.BuildFileTypes();
+        var m = await Task.Run(() => ProfileSuggester.Suggest(card.Path, card.Name, types));
+        FillMatch(m);
+        if (CamName.Length == 0) CamName = card.Name;
+        if (CamFolder.Length == 0) CamFolder = m.AudioOnlyWithoutDcim ? "Audio/" + card.Name : "Video/" + card.Name;
+        CamError = "";
+        _ctx.Shell.ShowToast($"Filled in from {card.Name}. Check it, then Save.");
+    }
+
+    [RelayCommand]
+    private void CancelCamera() => IsEditingCamera = false;
+
+    [RelayCommand]
+    private void SaveCamera()
+    {
+        var name = CamName.Trim();
+        var folder = CamFolder.Trim().Trim('/');
+        var match = new ProfileMatch
+        {
+            VolumeNameContains = Split(CamVolume),
+            DcimFolderContains = Split(CamDcim),
+            FilePrefixes = Split(CamPrefixes),
+            MarkerPaths = Split(CamMarkers).Select(x => x.Replace('\\', '/').Trim('/')).ToArray(),
+            AudioOnlyWithoutDcim = CamAudioOnly,
+        };
+        if (name.Length == 0) { CamError = "Give the camera a name."; return; }
+        if (folder.Length == 0) { CamError = "Choose the folder its files go to."; return; }
+        if (Describe(match) == "nothing yet")
+        {
+            CamError = "Add at least one way to recognise it, or use “Fill in from a plugged-in card”.";
+            return;
+        }
+
+        var id = _editingId ?? ProfileCatalog.NewId(name, ProfileCatalog.Load(ProfilesDir).Select(p => p.Id));
+        var profile = new CameraProfile { Id = id, Name = name, DefaultFolder = folder, Match = match };
+        try
+        {
+            ProfileCatalog.Save(ProfilesDir, profile);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            CamError = "Couldn't save: " + e.Message;
+            return;
+        }
+        _ctx.Settings.Routing.ByProfile[id] = folder;
+        if (!_ctx.Settings.Template.AllFolders().Contains(folder, StringComparer.OrdinalIgnoreCase))
+            _ctx.Settings.Template = _ctx.Settings.Template.With(folder) with { Name = "Custom" };
+        _ctx.Save();
+        CamerasChanged();
+        IsEditingCamera = false;
+        _ctx.Shell.ShowToast($"Saved {name}. Its files go to {Format.Folder(folder)}.");
+    }
+
+    private void DeleteCamera(ProfileRow row)
+    {
+        var p = row.Profile;
+        var builtIn = ProfileCatalog.IsBuiltIn(p.Id);
+        var route = _ctx.Settings.Routing.ByProfile.GetValueOrDefault(p.Id);
+        ProfileCatalog.Delete(ProfilesDir, p.Id);
+        if (!builtIn) _ctx.Settings.Routing.ByProfile.Remove(p.Id);
+        _ctx.Save();
+        CamerasChanged();
+        _ctx.Shell.ShowToast(builtIn ? $"{p.Name} is back to the built-in settings." : $"Deleted {p.Name}.", "Undo", () =>
+        {
+            ProfileCatalog.Save(ProfilesDir, p);
+            if (route is not null) _ctx.Settings.Routing.ByProfile[p.Id] = route;
+            _ctx.Save();
+            CamerasChanged();
+        });
+    }
+
+    /// <summary>Cameras changed on disk: reload them everywhere and re-detect the plugged-in cards.</summary>
+    private void CamerasChanged()
+    {
+        _ctx.Service.Profiles = ProfileCatalog.Load(ProfilesDir);
+        LoadCameras();
+        LoadFolders();
+        _ctx.Monitor.Refresh();
+    }
+
+    private static string[] Split(string text) =>
+        text.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    [RelayCommand] private void OpenProfilesFolder()
+    {
+        Directory.CreateDirectory(ProfilesDir);
+        _ctx.Platform.OpenFolder(ProfilesDir);
+    }
+
+    // ---- File types: add and remove, with Undo --------------------------------------------------------
     public ObservableCollection<ExtensionGroup> TypeGroups { get; } = [];
     public ObservableCollection<string> Kinds { get; } = ["Video", "Audio", "Photo", "Proxy"];
     [ObservableProperty] private string _newExtension = "";
@@ -323,19 +739,44 @@ public sealed partial class SettingsPageViewModel : PageViewModel
     {
         TypeGroups.Clear();
         var catalog = _ctx.Settings.BuildFileTypes();
-        foreach (var g in catalog.Extensions.GroupBy(kv => kv.Value).OrderBy(g => g.Key))
-            TypeGroups.Add(new ExtensionGroup(Format.Kinds([g.Key]), string.Join("  ", g.Select(kv => kv.Key.TrimStart('.').ToUpperInvariant()).Order())));
+        foreach (var kind in Enum.GetValues<FileKind>())
+        {
+            var items = catalog.Extensions.Where(kv => kv.Value == kind).Select(kv => kv.Key)
+                .Order(StringComparer.OrdinalIgnoreCase).Select(e => new ExtensionChip(e, RemoveExtension)).ToList();
+            TypeGroups.Add(new ExtensionGroup(Format.Kinds([kind]), items));
+        }
+    }
+
+    private void RemoveExtension(string ext)
+    {
+        var kind = _ctx.Settings.BuildFileTypes().Extensions.GetValueOrDefault(ext);
+        _ctx.Settings.RemoveExtension(ext);
+        _ctx.Save();
+        LoadTypes();
+        var shown = ext.TrimStart('.').ToUpperInvariant();
+        _ctx.Shell.ShowToast($"Removed .{shown}. Those files won't be copied.", "Undo", () =>
+        {
+            _ctx.Settings.AddExtension(ext, kind);
+            _ctx.Save();
+            LoadTypes();
+        });
     }
 
     [RelayCommand]
     private void AddExtension()
     {
-        var ext = NewExtension.Trim().TrimStart('.').ToLowerInvariant();
+        var ext = NewExtension.Trim().TrimStart('.');
         if (ext.Length == 0 || !Enum.TryParse<FileKind>(NewKind, out var kind)) return;
-        _ctx.Settings.ExtraExtensions[ext] = kind;
+        if (ext.Length > 8 || !ext.All(char.IsAsciiLetterOrDigit))
+        {
+            _ctx.Shell.ShowToast("An extension is a few letters or numbers, like BRAW or R3D.");
+            return;
+        }
+        _ctx.Settings.AddExtension(ext, kind);
         _ctx.Save();
         NewExtension = "";
         LoadTypes();
+        _ctx.Shell.ShowToast($"Added .{ext.ToUpperInvariant()} as {Format.Kinds([kind])}.");
     }
 
     // ---- Navigation ------------------------------------------------------------------------

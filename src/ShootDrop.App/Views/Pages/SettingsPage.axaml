@@ -5,6 +5,19 @@
              x:Class="ShootDrop.App.Views.Pages.SettingsPage"
              x:DataType="vm:SettingsPageViewModel">
 
+  <UserControl.Styles>
+    <Style Selector="Border.droprow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="1.5" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.droprow.drop">
+      <Setter Property="Background" Value="#E3EEFC" />
+      <Setter Property="BorderBrush" Value="#0A64D6" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="*,Auto">
     <TabControl TabStripPlacement="Left" SelectedIndex="{Binding TabIndex}" Padding="28,16,28,16">
 
@@ -63,19 +76,26 @@
                 <TextBlock Classes="label" Margin="0" Text="Folders in every new project" />
                 <Border Classes="card" Padding="8">
                   <StackPanel>
-                    <TextBlock Classes="muted" Text="&lt;project name&gt;" Margin="8,4" />
+                    <!-- Drop here to move a folder to the top level of the project -->
+                    <Border Classes="droprow" Classes.drop="{Binding RootIsDropTarget}" Tag="root" Padding="8,6">
+                      <TextBlock Classes="muted" Text="&lt;project name&gt;" />
+                    </Border>
                     <ItemsControl ItemsSource="{Binding Folders}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:FolderRow">
-                          <Grid ColumnDefinitions="Auto,*,Auto" Margin="{Binding Indent}" MinHeight="34">
-                            <Path Data="M3 6 L10 6 L12 8 L21 8 L21 19 L3 19 Z" Fill="#DCE8FA" Stroke="#0A64D6" StrokeThickness="1.2"
-                                  Width="16" Height="13" Stretch="Uniform" Margin="24,0,8,0" VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                              <TextBlock Text="{Binding Name}" FontWeight="Medium" />
-                              <TextBlock Classes="muted" FontSize="12" Text="{Binding Feeds}" IsVisible="{Binding HasFeeds}" />
-                            </StackPanel>
-                            <Button Grid.Column="2" Classes="remove" Content="×" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove this folder" />
-                          </Grid>
+                          <!-- Drag a folder onto another to move it inside; drop a camera here to route it -->
+                          <Border Classes="droprow" Classes.drop="{Binding IsDropTarget}" Tag="folder"
+                                  PointerPressed="OnDragStart" Cursor="SizeAll" ToolTip.Tip="Drag onto another folder to move it">
+                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="{Binding Indent}" MinHeight="34">
+                              <Path Data="M3 6 L10 6 L12 8 L21 8 L21 19 L3 19 Z" Fill="#DCE8FA" Stroke="#0A64D6" StrokeThickness="1.2"
+                                    Width="16" Height="13" Stretch="Uniform" Margin="24,0,8,0" VerticalAlignment="Center" />
+                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                                <TextBlock Classes="muted" FontSize="12" Text="{Binding Feeds}" IsVisible="{Binding HasFeeds}" />
+                              </StackPanel>
+                              <Button Grid.Column="2" Classes="remove" Content="×" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove this folder" />
+                            </Grid>
+                          </Border>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -87,7 +107,9 @@
                   <ComboBox Grid.Column="1" ItemsSource="{Binding Parents}" SelectedItem="{Binding NewFolderParent}" HorizontalAlignment="Stretch" />
                   <Button Grid.Column="2" Classes="plain" Content="Add folder" Command="{Binding AddFolderCommand}" Margin="8,0,0,0" />
                 </Grid>
-                <TextBlock Classes="muted" FontSize="12" Text="Empty folders are created too, so every project looks the same." />
+                <TextBlock Text="{Binding FolderMessage}" Foreground="#0A64D6" TextWrapping="Wrap" />
+                <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                           Text="Drag a folder onto another to move it inside, or onto ‹project name› to move it to the top. Drag a camera from the right onto a folder to send its files there. Empty folders are created too, so every project looks the same." />
               </StackPanel>
 
               <StackPanel Grid.Column="1" Spacing="8" Margin="12,0,0,0">
@@ -98,10 +120,17 @@
                       <DataTemplate x:DataType="vm:RouteRow">
                         <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="12,8">
                           <Grid ColumnDefinitions="*,190">
-                            <StackPanel VerticalAlignment="Center">
-                              <TextBlock Text="{Binding Source}" FontWeight="Medium" />
-                              <TextBlock Classes="muted" FontSize="12" Text="{Binding What}" />
-                            </StackPanel>
+                            <!-- Drag the source onto a folder on the left instead of using the list -->
+                            <Border Tag="route" Background="Transparent" PointerPressed="OnDragStart" Cursor="SizeAll"
+                                    ToolTip.Tip="Drag onto a folder on the left">
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="⠿" Foreground="#9A9CA3" FontSize="16" VerticalAlignment="Center" />
+                                <StackPanel VerticalAlignment="Center">
+                                  <TextBlock Text="{Binding Source}" FontWeight="Medium" />
+                                  <TextBlock Classes="muted" FontSize="12" Text="{Binding What}" />
+                                </StackPanel>
+                              </StackPanel>
+                            </Border>
                             <ComboBox Grid.Column="1" ItemsSource="{Binding Options}" SelectedItem="{Binding Selected}" HorizontalAlignment="Stretch" />
                           </Grid>
                         </Border>
@@ -121,15 +150,82 @@
         </ScrollViewer>
       </TabItem>
 
-      <!-- Cameras -->
+      <!-- Cameras: list, add, edit -->
       <TabItem Header="Cameras">
         <ScrollViewer>
-          <StackPanel Spacing="14" MaxWidth="820" HorizontalAlignment="Left">
-            <TextBlock Classes="h2" Text="Cameras" />
-            <TextBlock Classes="muted" FontSize="14" Text="How ShootDrop recognises each card. Profiles are small JSON files; anyone can add one to the project on GitHub." />
+          <StackPanel Spacing="14" MaxWidth="860" HorizontalAlignment="Left">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="h2" Text="Cameras" />
+                <TextBlock Classes="muted" FontSize="14" TextWrapping="Wrap"
+                           Text="How ShootDrop recognises each card and where its files go. Add your own camera, or edit one of these." />
+              </StackPanel>
+              <Button Grid.Column="1" Classes="primary" Content="+ Add camera" Command="{Binding AddCameraCommand}"
+                      IsVisible="{Binding NotEditingCamera}" VerticalAlignment="Top" />
+            </Grid>
+
+            <!-- Editor -->
+            <Border Classes="card" IsVisible="{Binding IsEditingCamera}" BorderBrush="#0A64D6" BorderThickness="1.5" Padding="20">
+              <StackPanel Spacing="14">
+                <TextBlock Classes="h2" FontSize="18" Text="{Binding CameraEditorTitle}" />
+
+                <!-- Fill in from a card -->
+                <Border Background="#F2F6FD" CornerRadius="10" Padding="14,12">
+                  <StackPanel Spacing="8">
+                    <TextBlock FontWeight="SemiBold" Text="Quickest: plug in the camera's card and let ShootDrop look at it" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasPluggedCards}">
+                      <ComboBox ItemsSource="{Binding PluggedCards}" SelectedItem="{Binding SelectedCard}" MinWidth="220" />
+                      <Button Classes="plain" Content="Fill in from this card" Command="{Binding FillFromCardCommand}" />
+                    </StackPanel>
+                    <TextBlock Classes="muted" IsVisible="{Binding NoPluggedCards}" TextWrapping="Wrap"
+                               Text="No card is plugged in right now. Plug one in and click Add camera again, or fill in the form yourself." />
+                    <TextBlock Classes="muted" FontSize="12" Text="It only reads folder and file names. Nothing on the card is changed." />
+                  </StackPanel>
+                </Border>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="label" Margin="0" Text="Name" />
+                    <TextBox Text="{Binding CamName}" Watermark="e.g. GoPro HERO 12" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Margin="0" Text="Its files go to" />
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBox Text="{Binding CamFolder}" Watermark="e.g. Video/GoPro" />
+                      <ComboBox Grid.Column="1" ItemsSource="{Binding FolderChoices}" SelectedItem="{Binding CamFolderPick}"
+                                PlaceholderText="Pick…" Width="110" Margin="6,0,0,0" ToolTip.Tip="Pick an existing project folder" />
+                    </Grid>
+                  </StackPanel>
+                </Grid>
+
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="label" Margin="0" Text="Recognise its card by (any one is enough; separate several with commas)" />
+                  <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                    <TextBlock Classes="muted" Text="File names start with" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1" Text="{Binding CamPrefixes}" Watermark="e.g. GX, DJI_" />
+                    <TextBlock Grid.Row="1" Classes="muted" Text="DCIM folder name has" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CamDcim}" Watermark="e.g. GOPRO (from 100GOPRO)" />
+                    <TextBlock Grid.Row="2" Classes="muted" Text="Card has the folder" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CamMarkers}" Watermark="e.g. PRIVATE/M4ROOT" />
+                    <TextBlock Grid.Row="3" Classes="muted" Text="Card name has" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CamVolume}" Watermark="e.g. gopro (weakest: cards get renamed)" />
+                    <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding CamAudioOnly}"
+                              Content="It's an audio recorder (no DCIM folder, only audio files)" />
+                  </Grid>
+                </StackPanel>
+
+                <TextBlock Text="{Binding CamError}" Foreground="#B3261E" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                  <Button Classes="plain" Content="Cancel" Command="{Binding CancelCameraCommand}" />
+                  <Button Classes="primary" Content="Save camera" Command="{Binding SaveCameraCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- List -->
             <Border Classes="card" Padding="0">
               <StackPanel>
-                <Grid ColumnDefinitions="200,*,170" Margin="14,10">
+                <Grid ColumnDefinitions="220,*,170,130" Margin="16,10">
                   <TextBlock Classes="label" Margin="0" Text="Camera" />
                   <TextBlock Grid.Column="1" Classes="label" Margin="0" Text="Recognised by" />
                   <TextBlock Grid.Column="2" Classes="label" Margin="0" Text="Goes to" />
@@ -137,11 +233,18 @@
                 <ItemsControl ItemsSource="{Binding Profiles}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:ProfileRow">
-                      <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,10">
-                        <Grid ColumnDefinitions="200,*,170">
-                          <TextBlock Classes="name" Text="{Binding Name}" TextWrapping="Wrap" />
-                          <TextBlock Grid.Column="1" Text="{Binding RecognisedBy}" TextWrapping="Wrap" Margin="0,0,12,0" />
-                          <TextBlock Grid.Column="2" Text="{Binding Folder}" />
+                      <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="16,12">
+                        <Grid ColumnDefinitions="220,*,170,130">
+                          <StackPanel Spacing="2">
+                            <TextBlock Classes="name" Text="{Binding Name}" TextWrapping="Wrap" />
+                            <TextBlock Classes="muted" FontSize="11" Text="{Binding Badge}" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="1" Text="{Binding RecognisedBy}" TextWrapping="Wrap" Margin="0,0,12,0" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="2" Text="{Binding Folder}" VerticalAlignment="Center" />
+                          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Classes="link" Content="Edit" Command="{Binding EditCommand}" />
+                            <Button Classes="link" Content="{Binding DeleteLabel}" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+                          </StackPanel>
                         </Grid>
                       </Border>
                     </DataTemplate>
@@ -149,7 +252,8 @@
                 </ItemsControl>
               </StackPanel>
             </Border>
-            <Button Classes="plain" HorizontalAlignment="Left" Content="Open my profiles folder" Command="{Binding OpenProfilesFolderCommand}" />
+            <Button Classes="link" HorizontalAlignment="Left" Content="Show my camera files in Finder (for sharing on GitHub)"
+                    Command="{Binding OpenProfilesFolderCommand}" />
 
             <StackPanel Spacing="8" IsVisible="{Binding HasRemembered}">
               <TextBlock Classes="label" Margin="0,8,0,0" Text="Cards you routed by hand" />
@@ -173,20 +277,37 @@
         </ScrollViewer>
       </TabItem>
 
-      <!-- File types -->
+      <!-- File types: chips you can remove (with Undo) and add -->
       <TabItem Header="File types">
         <ScrollViewer>
           <StackPanel Spacing="14" MaxWidth="760" HorizontalAlignment="Left">
             <TextBlock Classes="h2" Text="File types" />
-            <TextBlock Classes="muted" FontSize="14" Text="Which extensions count as each type. Files with other extensions (like .THM thumbnails) are never copied." />
+            <TextBlock Classes="muted" FontSize="14" TextWrapping="Wrap"
+                       Text="Which extensions count as each type. Click × to stop copying one. Files with other extensions (like .THM thumbnails) are never copied." />
             <Border Classes="card" Padding="0">
               <ItemsControl ItemsSource="{Binding TypeGroups}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ExtensionGroup">
-                    <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="14,10">
-                      <Grid ColumnDefinitions="120,*">
-                        <TextBlock Classes="name" Text="{Binding Kind}" />
-                        <TextBlock Grid.Column="1" Text="{Binding Extensions}" FontFamily="Menlo, monospace" FontSize="12" TextWrapping="Wrap" />
+                    <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="16,12">
+                      <Grid ColumnDefinitions="110,*">
+                        <TextBlock Classes="name" Text="{Binding Kind}" VerticalAlignment="Top" Margin="0,6,0,0" />
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding Items}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ExtensionChip">
+                              <Border Background="#F1F2F4" CornerRadius="14" Padding="10,3,4,3" Margin="0,0,6,6">
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                  <TextBlock Text="{Binding Name}" FontFamily="Menlo, monospace" FontSize="12" VerticalAlignment="Center" />
+                                  <Button Content="×" Command="{Binding RemoveCommand}" Background="Transparent" BorderThickness="0"
+                                          Padding="6,0" FontSize="14" Foreground="#6E6E73" Cursor="Hand"
+                                          ToolTip.Tip="Stop copying this type" />
+                                </StackPanel>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                       </Grid>
                     </Border>
                   </DataTemplate>
@@ -203,25 +324,70 @@
         </ScrollViewer>
       </TabItem>
 
-      <!-- Shortcut & background -->
+      <!-- Shortcut & background (FR-21, FR-23, FR-24) -->
       <TabItem Header="Shortcut &amp; background">
-        <StackPanel Spacing="12" MaxWidth="700" HorizontalAlignment="Left">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <ScrollViewer>
+          <StackPanel Spacing="18" MaxWidth="700" HorizontalAlignment="Left">
             <TextBlock Classes="h2" Text="Shortcut and background" />
-            <Border Background="#FFF1D6" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
-              <TextBlock Text="Planned for v0.2" FontSize="12" FontWeight="SemiBold" Foreground="#8A5A00" />
-            </Border>
-          </StackPanel>
-          <TextBlock Classes="muted" FontSize="14"
-                     Text="Copy without opening the app: a keyboard shortcut from anywhere on your Mac, start at login, and keep running in the menu bar. The menu bar icon already works while ShootDrop is open." />
-          <Border Classes="card">
-            <StackPanel Spacing="8" Opacity="0.6">
-              <CheckBox Content="Start ShootDrop when I log in" IsEnabled="False" />
-              <CheckBox Content="Keep running in the menu bar when the window is closed" IsEnabled="False" />
-              <TextBlock Text="Keyboard shortcut: ⌃⌥⌘C → show the Ready to copy window" />
+            <TextBlock Classes="muted" FontSize="14" TextWrapping="Wrap"
+                       Text="Copy without opening the app. ShootDrop waits quietly in the menu bar and uses almost nothing until a card is plugged in." />
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Margin="0" Text="Menu bar" />
+              <CheckBox IsChecked="{Binding KeepRunningInMenuBar}" Content="Keep running in the menu bar when the window is closed" />
+              <CheckBox IsChecked="{Binding StartAtLogin}" IsEnabled="{Binding CanStartAtLogin}" Content="Start ShootDrop when I log in (opens in the menu bar)" />
+              <TextBlock Classes="muted" IsVisible="{Binding CannotStartAtLogin}" TextWrapping="Wrap"
+                         Text="Start at login works when ShootDrop runs as ShootDrop.app on a Mac." />
             </StackPanel>
-          </Border>
-        </StackPanel>
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Margin="0" Text="When cards are plugged in" />
+              <ComboBox ItemsSource="{Binding ArrivalChoices}" SelectedIndex="{Binding ArrivalIndex}" MinWidth="340" />
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Automatic copies use your last setup and today's date as the project name. They start only when every plugged-in card is a camera ShootDrop knows and there is something to copy; otherwise Ready to copy opens so you can decide. Every file is still verified." />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <TextBlock Classes="label" Margin="0" Text="Keyboard shortcut" />
+              <CheckBox IsChecked="{Binding ShortcutEnabled}" Content="{Binding ShortcutLabel}" />
+
+              <!-- Current shortcut as key caps, with Change / Reset -->
+              <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding NotRecording}">
+                <ItemsControl ItemsSource="{Binding ShortcutKeys}" VerticalAlignment="Center">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="sys:String">
+                      <Border Background="White" BorderBrush="#C9CBD0" BorderThickness="1,1,1,2" CornerRadius="6"
+                              MinWidth="34" Height="34" Padding="8,0">
+                        <TextBlock Text="{Binding}" FontSize="16" FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Classes="plain" Content="Change…" Command="{Binding ChangeShortcutCommand}" VerticalAlignment="Center" />
+                <Button Classes="link" Content="Reset to ⌃⌥⌘C" Command="{Binding ResetShortcutCommand}"
+                        IsVisible="{Binding CanResetShortcut}" VerticalAlignment="Center" />
+              </StackPanel>
+
+              <!-- Recording: the next key press with ⌃ ⌥ or ⌘ becomes the shortcut -->
+              <Border Classes="selected" IsVisible="{Binding IsRecording}" CornerRadius="10" Padding="16,12"
+                      BorderBrush="#0A64D6" BorderThickness="2" Background="#EEF4FD">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="{Binding RecordHint}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Classes="link" Content="Cancel" Command="{Binding CancelRecordingCommand}" Margin="12,0,0,0" />
+                </Grid>
+              </Border>
+
+              <TextBlock Text="{Binding ShortcutMessage}" Foreground="#1E7F3A" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" Text="{Binding ShortcutStatus}" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Use ⌃ Control, ⌥ Option or ⌘ Command with a letter, a number or F1–F12. ShootDrop checks that no other app already uses it." />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
     </TabControl>
 
@@ -231,5 +397,12 @@
         <Button Grid.Column="1" Classes="primary" Content="Done" Command="{Binding DoneCommand}" />
       </Grid>
     </Border>
+
+    <!-- What you're dragging follows the pointer -->
+    <Canvas Grid.RowSpan="2" IsHitTestVisible="False">
+      <Border x:Name="DragGhost" IsVisible="False" Background="#0A64D6" CornerRadius="8" Padding="10,6" Opacity="0.92">
+        <TextBlock x:Name="DragGhostText" Foreground="White" FontWeight="SemiBold" />
+      </Border>
+    </Canvas>
   </Grid>
 </UserControl>

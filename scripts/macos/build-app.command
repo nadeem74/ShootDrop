@@ -19,5 +19,5 @@ if ! dotnet publish src/ShootDrop.App -c Release -r osx-arm64 --self-contained t
 fi
 log "Publish: OK"
 
-scripts/macos/package-app.sh artifacts/publish "$APP" 0.1.0 2>&1 | tee -a "$LOG"
+scripts/macos/package-app.sh artifacts/publish "$APP" 0.2.0 2>&1 | tee -a "$LOG"
 open "$APP" && log "Opened ShootDrop.app"

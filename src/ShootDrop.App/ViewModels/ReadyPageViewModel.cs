@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShootDrop.App.Services;
 using ShootDrop.Core;
+using ShootDrop.Core.Media;
 using ShootDrop.Core.Settings;
 
 namespace ShootDrop.App.ViewModels;
@@ -47,6 +48,51 @@ public sealed partial class ReadyPageViewModel : PageViewModel
     public override bool Compact => true;
 
     public ObservableCollection<string> SetupNames { get; } = [];
+
+    // ---- Which day(s): the setup's own dates, a quick choice, or picked on a calendar ---------------
+    public string[] DateOptions { get; } = ["Setup's dates", "Today", "Yesterday", "Last 3 days", "Pick dates…"];
+    private const int PickIndex = 4;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPicking))]
+    private int _dateIndex;
+
+    [ObservableProperty] private DateTime? _pickFrom;
+    [ObservableProperty] private DateTime? _pickTo;
+
+    public bool IsPicking => DateIndex == PickIndex;
+
+    partial void OnDateIndexChanged(int value)
+    {
+        if (value == PickIndex && PickFrom is null) PickFrom = _ctx.Today.ToDateTime(TimeOnly.MinValue);
+        _ = RefreshAsync();
+    }
+
+    partial void OnPickFromChanged(DateTime? value) => _ = RefreshAsync();
+
+    partial void OnPickToChanged(DateTime? value) => _ = RefreshAsync();
+
+    /// <summary>The chosen setup with the date choice from this window applied.</summary>
+    private Setup EffectiveSetup()
+    {
+        var setup = CurrentSetup();
+        DateRule? date = DateIndex switch
+        {
+            1 => DateRule.Today,
+            2 => DateRule.Yesterday,
+            3 => DateRule.LastDays(3),
+            PickIndex => Picked(),
+            _ => null,
+        };
+        return date is null ? setup : setup with { Date = date };
+    }
+
+    private DateRule Picked()
+    {
+        var from = DateOnly.FromDateTime(PickFrom ?? _ctx.Today.ToDateTime(TimeOnly.MinValue));
+        var to = PickTo is { } t ? DateOnly.FromDateTime(t) : from;
+        return to < from ? DateRule.Between(to, from) : DateRule.Between(from, to);
+    }
     public ObservableCollection<CardRow> Cards { get; } = [];
     public ObservableCollection<string> Pills { get; } = [];
 
@@ -70,7 +116,7 @@ public sealed partial class ReadyPageViewModel : PageViewModel
     private async Task RefreshAsync()
     {
         var version = ++_version;
-        var setup = CurrentSetup();
+        var setup = EffectiveSetup();
         Pills.Clear();
         Pills.Add(setup.Date.Describe(_ctx.Today));
         Pills.Add(Format.Kinds(setup.Kinds));
@@ -120,7 +166,7 @@ public sealed partial class ReadyPageViewModel : PageViewModel
     [RelayCommand(CanExecute = nameof(CanCopyNow))]
     private async Task CopyNowAsync()
     {
-        var preview = await _ctx.PreviewAsync(CopyRequest.FromSetup(CurrentSetup(), ProjectName.Trim()));
+        var preview = await _ctx.PreviewAsync(CopyRequest.FromSetup(EffectiveSetup(), ProjectName.Trim()));
         if (!preview.Plan.CanRun)
         {
             await RefreshAsync();

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ShootDrop.App.ViewModels"
+             xmlns:c="using:ShootDrop.App.Views.Controls"
              xmlns:sys="using:System"
              x:Class="ShootDrop.App.Views.Pages.MainPage"
              x:DataType="vm:MainPageViewModel">
@@ -164,11 +165,11 @@
               <Grid ColumnDefinitions="*,*" Margin="0,8,0,0" IsVisible="{Binding IsCustom}">
                 <StackPanel Margin="0,0,6,0">
                   <TextBlock Classes="muted" FontSize="12" Text="From" />
-                  <CalendarDatePicker SelectedDate="{Binding CustomFrom}" HorizontalAlignment="Stretch" />
+                  <c:DateButton SelectedDate="{Binding CustomFrom}" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="6,0,0,0">
                   <TextBlock Classes="muted" FontSize="12" Text="To" />
-                  <CalendarDatePicker SelectedDate="{Binding CustomTo}" HorizontalAlignment="Stretch" />
+                  <c:DateButton SelectedDate="{Binding CustomTo}" Placeholder="Same day" CanClear="True" />
                 </StackPanel>
               </Grid>
               <TextBlock Text="{Binding DateLabel}" FontSize="13" Margin="0,8,0,0" />

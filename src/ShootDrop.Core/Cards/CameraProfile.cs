@@ -67,6 +67,49 @@ public static class ProfileCatalog
         return byId.Values.ToList();
     }
 
+    public static bool IsBuiltIn(string id) =>
+        BuiltIn().Any(p => string.Equals(p.Id, id, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Saves a camera the user added or edited in the app as &lt;id&gt;.json in their profiles folder.
+    /// Saving with a built-in id overrides the built-in profile (see <see cref="Load"/>).
+    /// </summary>
+    public static void Save(string userProfilesDirectory, CameraProfile profile)
+    {
+        Directory.CreateDirectory(userProfilesDirectory);
+        var path = Path.Combine(userProfilesDirectory, profile.Id + ".json");
+        var tmp = path + ".tmp";
+        File.WriteAllText(tmp, JsonSerializer.Serialize(profile, Json.Options));
+        File.Move(tmp, path, overwrite: true);
+    }
+
+    /// <summary>Deletes the user's file for a camera. For a built-in camera this restores the shipped profile.</summary>
+    public static void Delete(string userProfilesDirectory, string id)
+    {
+        if (!Directory.Exists(userProfilesDirectory)) return;
+        foreach (var file in Directory.EnumerateFiles(userProfilesDirectory, "*.json"))
+        {
+            using (var stream = File.OpenRead(file))
+            {
+                if (!string.Equals(Read(stream, file).Id, id, StringComparison.OrdinalIgnoreCase)) continue;
+            }
+            File.Delete(file);
+        }
+    }
+
+    /// <summary>"GoPro HERO 12" → "gopro-hero-12", unique among <paramref name="existingIds"/>.</summary>
+    public static string NewId(string name, IEnumerable<string> existingIds)
+    {
+        var slug = new string(name.ToLowerInvariant().Select(c => char.IsAsciiLetterOrDigit(c) ? c : '-').ToArray());
+        while (slug.Contains("--", StringComparison.Ordinal)) slug = slug.Replace("--", "-", StringComparison.Ordinal);
+        slug = slug.Trim('-');
+        if (slug.Length == 0) slug = "camera";
+        var taken = existingIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var id = slug;
+        for (var i = 2; taken.Contains(id); i++) id = $"{slug}-{i}";
+        return id;
+    }
+
     private static CameraProfile Read(Stream stream, string source) =>
         JsonSerializer.Deserialize<CameraProfile>(stream, Json.Options)
         ?? throw new InvalidDataException($"Empty camera profile: {source}");

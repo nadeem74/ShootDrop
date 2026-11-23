@@ -21,8 +21,8 @@ jobs:
     # a Windows failure doesn't block a merge yet (help wanted, see CONTRIBUTING.md).
     continue-on-error: ${{ matrix.os == 'windows-latest' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
       - name: Restore

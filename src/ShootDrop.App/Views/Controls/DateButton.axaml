@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ShootDrop.App.Views.Controls.DateButton">
+  <!-- A date shown as a friendly button ("Mon 23 Nov"); clicking opens a calendar. Replaces CalendarDatePicker. -->
+  <Button x:Name="Trigger" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+          Background="White" BorderBrush="#D3D5DA" BorderThickness="1" CornerRadius="8" Padding="10,7" Cursor="Hand">
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <Path Data="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm-2 7h14v10H5V9z"
+            Fill="#0A64D6" Width="15" Height="15" Stretch="Uniform" VerticalAlignment="Center" />
+      <TextBlock x:Name="Label" FontSize="14" VerticalAlignment="Center" />
+    </StackPanel>
+    <Button.Flyout>
+      <Flyout Placement="BottomEdgeAlignedLeft">
+        <StackPanel Spacing="6">
+          <Calendar x:Name="Picker" SelectionMode="SingleDate" IsTodayHighlighted="True" />
+          <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+            <Button x:Name="TodayButton" Classes="link" Content="Today" />
+            <Button x:Name="ClearButton" Classes="link" Content="Clear" />
+          </StackPanel>
+        </StackPanel>
+      </Flyout>
+    </Button.Flyout>
+  </Button>
+</UserControl>

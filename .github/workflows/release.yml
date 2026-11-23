@@ -22,10 +22,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag || github.ref }}
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
       - run: dotnet test ShootDrop.slnx -c Release
@@ -37,10 +37,10 @@ jobs:
       matrix:
         rid: [osx-arm64, osx-x64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag || github.ref }}
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
       - name: Version
@@ -58,7 +58,7 @@ jobs:
         run: |
           dotnet publish src/ShootDrop.Cli -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o out/cli -p:Version=$VERSION
           tar -czf "dist/shootdrop-cli-$VERSION-${{ matrix.rid }}.tar.gz" -C out/cli shootdrop
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: dist-${{ matrix.rid }}
           path: dist/*
@@ -70,10 +70,10 @@ jobs:
       matrix:
         rid: [linux-x64, win-x64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag || github.ref }}
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
       - name: Version
@@ -94,7 +94,7 @@ jobs:
             tar -czf "dist/ShootDrop-$VERSION-linux-x64.tar.gz" -C out ShootDrop
             tar -czf "dist/shootdrop-cli-$VERSION-linux-x64.tar.gz" -C out/cli shootdrop
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: dist-${{ matrix.rid }}
           path: dist/*
@@ -103,7 +103,7 @@ jobs:
     needs: [macos, linux-windows]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: dist
           merge-multiple: true
