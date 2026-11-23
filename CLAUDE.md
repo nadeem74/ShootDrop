@@ -6,7 +6,7 @@ Maintainer and architect: Nadeem Ahmed. He reviews every change; explain decisio
 
 ## Status
 
-v0.1. Builds with 0 warnings; tests pass on macOS and Linux. macOS is used daily on real cards;
+v0.1. Builds with 0 warnings; tests pass on macOS, Linux and Windows in CI. macOS is used daily on real cards;
 Linux and Windows build in CI and need real-card testing.
 
 macOS helper scripts (double-click in Finder):

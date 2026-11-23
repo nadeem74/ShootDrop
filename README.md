@@ -34,6 +34,17 @@ copies into *your* folder structure, and verifies every file with a checksum. Yo
 > Started as a small bash script on my Mac. Turned into a proper app because copying footage
 > by hand every night is how clips get lost.
 
+## What it looks like
+
+<p align="center">
+  <img src="docs/images/wireframes/10-ready-window.png" width="300" alt="Ready to copy: one button copies with your last setup">
+  &nbsp;
+  <img src="docs/images/wireframes/02-main.png" width="520" alt="Main window: cards, dates, file types and the smart box">
+</p>
+
+<p align="center"><sub>Left: the <b>Ready to copy</b> window the app opens on. Right: the main window.
+These are the design wireframes the app was built from; see <a href="docs/WIREFRAMES.md">all 10 screens</a>.</sub></p>
+
 ## Who it's for
 
 | If you… | ShootDrop gives you… |
@@ -168,7 +179,7 @@ More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Integrity | xxHash64 (System.IO.Hashing), streaming hash during copy, verify-then-rename |
 | Tests | xUnit, fake camera cards generated in temp folders, CI on macOS, Linux and Windows |
 | Delivery | GitHub Actions: tests on every push, release builds for 4 platforms on every tag |
-| Process | PRD with requirement IDs, [Architecture Decision Records](docs/adr), small PRs |
+| Process | [Wireframes](docs/WIREFRAMES.md) first, PRD with requirement IDs, [Architecture Decision Records](docs/adr), small PRs |
 | AI (v0.2) | LLamaSharp + GGUF small language model, JSON-schema-constrained output |
 
 ## Contributing
@@ -191,7 +202,7 @@ the local AI model, a signed and notarised macOS build, and community-tested Lin
 ## Built by
 
 **Nadeem Ahmed**, software architect and YouTube creator (Thelocalguide), who needed this for his own shoots.
-He designed the architecture, wrote the specs and ADRs, and reviewed every change. The code was pair-programmed
+He designed the screens and the architecture, wrote the specs and ADRs, and reviewed every change. The code was pair-programmed
 with an AI coding agent ([Claude Code](https://claude.com/claude-code)); the rules it follows are in [CLAUDE.md](CLAUDE.md).
 
 [LinkedIn](https://www.linkedin.com/in/nadeem12) · [GitHub](https://github.com/nadeem74)
