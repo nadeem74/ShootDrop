@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0 (2026-11-23)
 
 - Runs from the menu bar: cards plugged in, Copy now with your last setup, setups, Settings, Quit
 - Closing the window keeps ShootDrop in the menu bar; no Dock icon while it waits
@@ -8,7 +8,10 @@
 - Global shortcut, ⌃⌥⌘C by default, change it in Settings (macOS)
 - When cards are plugged in: show Ready to copy, copy automatically, or do nothing
 - Drag and drop in the folder editor: move folders, drop a camera on a folder to route it
-- Date picker in the Ready to copy window
+- Cameras: add, edit and delete cameras inside the app; fill in from a plugged-in card
+- File types: remove any extension (with Undo), add your own
+- Toast messages with Undo
+- New date picker (calendar) in both windows
 - One-colour menu bar icon that follows light and dark mode
 - Near-zero idle cost: waits for macOS to report new drives instead of checking every 2 seconds
 
