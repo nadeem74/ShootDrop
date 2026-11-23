@@ -1,0 +1,121 @@
+name: release
+
+# Push a tag like v0.1.0 and this builds ShootDrop for macOS, Windows and Linux
+# and attaches the downloads to a GitHub Release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet test ShootDrop.slnx -c Release
+
+  macos:
+    needs: test
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        rid: [osx-arm64, osx-x64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Version
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+      - name: Publish app
+        run: dotnet publish src/ShootDrop.App -c Release -r ${{ matrix.rid }} --self-contained true -o out/app -p:Version=$VERSION
+      - name: Package .app
+        run: |
+          scripts/macos/package-app.sh out/app out/ShootDrop.app "$VERSION"
+          mkdir -p dist
+          ditto -c -k --keepParent out/ShootDrop.app "dist/ShootDrop-$VERSION-${{ matrix.rid }}.zip"
+      - name: Publish CLI
+        run: |
+          dotnet publish src/ShootDrop.Cli -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o out/cli -p:Version=$VERSION
+          tar -czf "dist/shootdrop-cli-$VERSION-${{ matrix.rid }}.tar.gz" -C out/cli shootdrop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.rid }}
+          path: dist/*
+
+  linux-windows:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rid: [linux-x64, win-x64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Version
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+      - name: Publish app and CLI
+        run: |
+          dotnet publish src/ShootDrop.App -c Release -r ${{ matrix.rid }} --self-contained true -o out/ShootDrop -p:Version=$VERSION
+          dotnet publish src/ShootDrop.Cli -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o out/cli -p:Version=$VERSION
+      - name: Archive
+        run: |
+          mkdir -p dist
+          if [ "${{ matrix.rid }}" = "win-x64" ]; then
+            (cd out && zip -qr "../dist/ShootDrop-$VERSION-win-x64.zip" ShootDrop)
+            (cd out/cli && zip -q "../../dist/shootdrop-cli-$VERSION-win-x64.zip" shootdrop.exe)
+          else
+            tar -czf "dist/ShootDrop-$VERSION-linux-x64.tar.gz" -C out ShootDrop
+            tar -czf "dist/shootdrop-cli-$VERSION-linux-x64.tar.gz" -C out/cli shootdrop
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.rid }}
+          path: dist/*
+
+  release:
+    needs: [macos, linux-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Create or update the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" dist/* -R "$GITHUB_REPOSITORY" --title "ShootDrop $TAG" --generate-notes --prerelease
+          fi

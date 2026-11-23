@@ -1,60 +1,134 @@
-# ShootDrop
+<p align="center">
+  <img src="src/ShootDrop.App/Assets/icon-256.png" width="112" alt="ShootDrop icon">
+</p>
 
-**Copy a shoot day off your camera cards in one click, with every file verified.**
+<h1 align="center">ShootDrop</h1>
 
-ShootDrop finds the cards you plug in (DJI Osmo Pocket, Lumix, DJI Mic, and more by profile),
-picks the footage recorded on the days you choose, and copies it into a new project folder
-built from your own folder structure. Cards are only ever read. Nothing in a project is
-overwritten. Every file is checked with a checksum after it's copied.
+<p align="center">
+  <b>Plug in your camera cards. Press Copy. Every clip lands in the right folder, checked byte for byte.</b>
+</p>
 
-> Status: early development (v0.1, macOS first). Linux and Windows are planned.
+<p align="center">
+  <a href="https://github.com/nadeem74/ShootDrop/actions/workflows/ci.yml"><img src="https://github.com/nadeem74/ShootDrop/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/macOS-ready-success" alt="macOS ready">
+  <img src="https://img.shields.io/badge/Linux%20%7C%20Windows-testers%20wanted-orange" alt="Linux and Windows testers wanted">
+  <img src="https://img.shields.io/badge/.NET-10-512BD4" alt=".NET 10">
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome"></a>
+</p>
 
-## Why
+---
 
-Creators shooting on several devices copy the same way every day: plug in cards, make a
-project folder, sort clips into `Video/Pocket 4P`, `Video/Camera`, `Audio/DJI Mic`, and hope nothing
-got corrupted. Paid tools do this for film crews. ShootDrop is the free, open-source
-version for solo creators and small teams.
+## TL;DR
 
-## Features (v0.1)
+You shot all day on a DJI Pocket, a Lumix and a DJI Mic. Now it's 11 pm and you have to:
 
-- Detects cards and the device they came from, using JSON camera profiles
-- Pick cards, a day or a date range, and file types (video, audio, photos, proxies)
-- Your folder structure: copy your own template folder, or use a preset (My template, A-roll / B-roll)
-- Saved setups and **Copy like last time**
-- Smart box: type "all cards, yesterday for Sinhagad trip"
-- Copy + xxHash64 verify, resume-safe (`.part` files), copy report in every project
-- `shootdrop` command-line tool on the same engine
+1. make a project folder,
+2. dig through three cards for *today's* clips,
+3. drag videos into `Video/…` and audio into `Audio/…`,
+4. hope nothing got corrupted on the way.
 
-Planned: menu bar quick copy, global shortcut, start at login, a small local AI model for the
-smart box, Linux and Windows builds.
+**ShootDrop does all four in one click.** It knows which card is which, picks only the days you want,
+copies into *your* folder structure, and verifies every file with a checksum. Your cards are only ever read.
 
-## Build
+> Started as a small bash script on my Mac. Turned into a proper app because copying footage
+> by hand every night is how clips get lost.
+
+## Who it's for
+
+| If you… | ShootDrop gives you… |
+| --- | --- |
+| post Reels, Shorts and vlogs from 2–4 devices | one button: **Copy like last time** |
+| shoot weddings, events or podcasts | per-card routing, date ranges, a copy report in every project |
+| just want the family trip off the camera without thinking | it finds the card, you press Copy, done |
+| are a developer | a clean .NET 10 codebase with tests, ADRs and a CLI to learn from or extend |
+
+## Why you can trust it with footage
+
+Safety rules are written into the architecture ([ADR-003](docs/adr/0003-architecture.md)) and covered by tests:
+
+- 🔒 **Cards are read-only.** ShootDrop never writes, renames, deletes or formats anything on a card.
+- ✅ **Every file is verified.** Each copy is re-read and its [xxHash64](docs/adr/0004-checksum-xxhash64.md) must match the source before it counts as done.
+- 🧩 **No half files.** Copies are written as `name.part` and renamed only after they pass the check. Cancel or pull the drive, and nothing broken is left behind.
+- 🙅 **Never overwrites.** Same file already there → skipped. Same name, different content → saved as `name (2)`.
+- 🧾 **Receipts.** A `copy-report.txt` in each project lists every file, size and checksum.
+
+## Features
+
+- **Knows your gear.** Detects DJI Osmo Pocket, Panasonic Lumix and DJI Mic out of the box. Adding a camera is one small [JSON file](#add-your-camera).
+- **Your folders, your way.** Use your own template folder, or presets like `Audio / Video/<camera> / Images` or A-roll / B-roll.
+- **Smart routing.** Video from each camera goes to its own folder. Audio tracks (like the DJI Pocket's `.AAC` mic files) go to `Audio/`. Proxies (`.LRF`) are skipped unless you want them.
+- **Pick the day.** Today, yesterday, the last N days, or any date range.
+- **One-click repeat.** Save setups like "Shoot day" or "Pocket vlog". The app opens on a small **Ready to copy** window with one **Copy now** button.
+- **Talk to it.** Type `all cards, yesterday for Sinhagad trip` or `kal ka sab footage with photos` (yes, Hinglish works).
+- **Menu bar icon** for quick access, plus Open in Finder and Eject cards when the copy finishes.
+- **CLI included.** Same engine, scriptable: `shootdrop copy --date yesterday --name "Goa trip"`.
+
+## AI: where it is and where it's going 🤖
+
+The smart box is built **AI-ready, rules-first**, on purpose ([ADR-005](docs/adr/0005-smart-box-and-local-ai.md)):
+
+- **Today (v0.1):** a fast, fully tested rule parser turns plain sentences into a copy filter: dates, card names,
+  file types, project name, English and Hinglish. No model, no download, works offline, never guesses.
+- **Next (v0.2):** sentences the rules don't understand go to a **tiny local language model** (≈0.3–0.5B parameters,
+  GGUF via [LLamaSharp](https://github.com/SciSharp/LLamaSharp)/llama.cpp). It runs **on your machine, offline**, its
+  output is forced into a JSON schema and validated, and **you always confirm before anything is copied**.
+  The AI fills in the form. It never presses the button.
+- **The learning part:** an eval set built from the rule tests, synthetic training pairs, a LoRA fine-tune, then the
+  smallest model that hits the accuracy target. All of it will be in this repo. See [docs/AI.md](docs/AI.md).
+
+Want to work on on-device AI in .NET? This is a good place to start. 👀
+
+## Get it
+
+### Download
+
+Builds for macOS (Apple Silicon and Intel), Windows and Linux are attached to each
+[GitHub Release](https://github.com/nadeem74/ShootDrop/releases), built by GitHub Actions from this repo.
+
+**macOS:** unzip, drag `ShootDrop.app` to Applications. The app isn't notarised by Apple yet, so the first time:
+right-click the app → **Open** → **Open**. (Or run `xattr -dr com.apple.quarantine /Applications/ShootDrop.app`.)
+
+### Platform status
+
+| Platform | Status |
+| --- | --- |
+| macOS 12+ (Apple Silicon) | ✅ Daily use, tested on real DJI and Lumix cards |
+| macOS (Intel) | 🧪 Builds in CI, needs a tester |
+| Linux (x64) | 🧪 Builds and core tests pass in CI, **needs testers** with real cards |
+| Windows (x64) | 🧪 Builds in CI, **needs testers** with real cards |
+
+**Got a Linux or Windows machine and a camera card? You're exactly who we need.**
+Open a [platform test report](https://github.com/nadeem74/ShootDrop/issues/new?template=platform_test.yml) and tell us what worked.
+
+### Build from source
 
 Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
-dotnet build ShootDrop.slnx
-dotnet test ShootDrop.slnx
-dotnet run --project src/ShootDrop.App          # the app
-dotnet run --project src/ShootDrop.Cli -- help  # the CLI
+git clone https://github.com/nadeem74/ShootDrop.git
+cd ShootDrop
+dotnet test ShootDrop.slnx                       # runs against fake cards, no hardware needed
+dotnet run --project src/ShootDrop.App           # the app
+dotnet run --project src/ShootDrop.Cli -- help   # the CLI
 ```
 
-## Try the CLI
+On a Mac you can also double-click `scripts/macos/setup.command` (installs .NET if missing, builds, tests) and
+`scripts/macos/build-app.command` (builds and opens `ShootDrop.app`).
+
+## The CLI
 
 ```bash
-# where projects go (saved to ~/Library/Application Support/ShootDrop/settings.json)
-dotnet run --project src/ShootDrop.Cli -- config --root "/Volumes/SSD 1TB/SSD Video Projects"
-
-dotnet run --project src/ShootDrop.Cli -- cards
-dotnet run --project src/ShootDrop.Cli -- plan --date yesterday --name "Sinhagad trip"
-dotnet run --project src/ShootDrop.Cli -- copy --date yesterday --name "Sinhagad trip"
-dotnet run --project src/ShootDrop.Cli -- ask "Pocket only, last 3 days"
+shootdrop config --root "/Volumes/My SSD/Video Projects"   # where projects go
+shootdrop cards                                             # what's plugged in
+shootdrop plan --date yesterday --name "Sinhagad trip"      # dry run, copies nothing
+shootdrop copy --date yesterday --name "Sinhagad trip"      # the real thing
+shootdrop ask  "Pocket only, last 3 days"                   # test the smart box
 ```
 
 ## Add your camera
 
-Add a JSON file to `profiles/` (or to `~/Library/Application Support/ShootDrop/profiles/`):
+Drop a JSON file in `profiles/` (or in `~/Library/Application Support/ShootDrop/profiles/` on your machine):
 
 ```json
 {
@@ -65,13 +139,63 @@ Add a JSON file to `profiles/` (or to `~/Library/Application Support/ShootDrop/p
 }
 ```
 
-Pull requests with new profiles are very welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Send it as a pull request and everyone with that camera benefits. Sony, Canon, GoPro, Insta360 and Zoom
+recorders are all wanted.
 
-## How it's built
+## How it works
 
-- .NET 10, Avalonia UI, xUnit. Decisions are recorded in [docs/adr](docs/adr).
-- `ShootDrop.Core` holds all copy logic and has no UI code; the app and the CLI are thin front ends.
+```mermaid
+flowchart LR
+    A[Cards plugged in] --> B[Detect device<br/>camera profiles]
+    B --> C[Scan clips<br/>by date + type]
+    C --> D[Plan<br/>route to folders]
+    D --> E[Copy to .part<br/>hash while copying]
+    E --> F{Re-read:<br/>xxHash64 match?}
+    F -- yes --> G[Rename to final name]
+    F -- no --> H[Delete .part, report error]
+    G --> I[copy-report.txt]
+```
+
+All of this lives in `ShootDrop.Core`, which has no UI code. The desktop app and the CLI are thin layers on top.
+More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Under the hood
+
+| | |
+| --- | --- |
+| Language / runtime | C# on .NET 10 |
+| UI | Avalonia 11 (cross-platform XAML), MVVM with CommunityToolkit.Mvvm, compiled bindings |
+| Integrity | xxHash64 (System.IO.Hashing), streaming hash during copy, verify-then-rename |
+| Tests | xUnit, fake camera cards generated in temp folders, CI on macOS, Linux and Windows |
+| Delivery | GitHub Actions: tests on every push, release builds for 4 platforms on every tag |
+| Process | PRD with requirement IDs, [Architecture Decision Records](docs/adr), small PRs |
+| AI (v0.2) | LLamaSharp + GGUF small language model, JSON-schema-constrained output |
+
+## Contributing
+
+PRs are welcome, big or small. Fork it, fix it, add your camera, port it, or use it in your own project:
+it's MIT, so do whatever you like with it. Good first steps:
+
+- 🧪 **Test on Linux or Windows** and report what breaks
+- 📷 **Add a camera profile** for your gear
+- 🤖 **Help build the local AI smart box** (v0.2)
+- 🐛 Bugs and ideas → [Issues](https://github.com/nadeem74/ShootDrop/issues)
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first; the one hard rule is that footage safety always wins.
+
+## Roadmap
+
+See [docs/ROADMAP.md](docs/ROADMAP.md). Next up: global keyboard shortcut, start at login and menu-bar-only mode,
+the local AI model, a signed and notarised macOS build, and community-tested Linux and Windows releases.
+
+## Built by
+
+**Nadeem Ahmed**, software architect and YouTube creator (Thelocalguide), who needed this for his own shoots.
+He designed the architecture, wrote the specs and ADRs, and reviewed every change. The code was pair-programmed
+with an AI coding agent ([Claude Code](https://claude.com/claude-code)); the rules it follows are in [CLAUDE.md](CLAUDE.md).
+
+[LinkedIn](https://www.linkedin.com/in/nadeem12) · [GitHub](https://github.com/nadeem74)
 
 ## License
 
-MIT, © 2026 Nadeem Ahmed
+[MIT](LICENSE) © 2026 Nadeem Ahmed. Free to use, change and share.

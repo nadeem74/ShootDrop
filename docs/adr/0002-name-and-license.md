@@ -5,8 +5,7 @@
 
 ## Decision
 
-- Product, repo and app name: **ShootDrop**. Bundle ID: `io.github.<owner>.shootdrop`
-  (set once the GitHub owner is final).
+- Product, repo and app name: **ShootDrop**. Bundle ID: `io.github.shootdrop.app`.
 - License: **MIT**: short, permissive, widely understood by contributors.
 
 ## Consequences

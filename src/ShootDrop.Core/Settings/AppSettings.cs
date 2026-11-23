@@ -34,7 +34,7 @@ public sealed class AppSettings
         Version = CurrentVersion;
     }
 
-    /// <summary>Where projects are created, e.g. "/Volumes/SSD 1TB/SSD Video Projects".</summary>
+    /// <summary>Where projects are created, e.g. "/Volumes/My SSD/Video Projects".</summary>
     public string ProjectsRoot { get; set; } = "";
 
     /// <summary>Optional folder copied into every new project (the user's "Project template").</summary>

@@ -6,7 +6,7 @@ namespace ShootDrop.Core.Projects;
 /// </summary>
 public sealed record FolderTemplate(string Name, IReadOnlyList<string> Folders)
 {
-    /// <summary>Default, based on the folders Nadeem's original script copied into.</summary>
+    /// <summary>Default, based on the folders the original copy script used.</summary>
     public static FolderTemplate MyTemplate { get; } = new("My template",
         ["Audio/DJI Mic", "Video/Pocket 4P", "Video/Camera", "Video/iPhone", "Images"]);
 

@@ -212,7 +212,7 @@ public sealed partial class SettingsPageViewModel : PageViewModel
     {
         var pocket = Routes.FirstOrDefault(r => r.Key == "profile:dji-osmo-pocket");
         Example = pocket?.Selected is { } f && f != DontCopy
-            ? $"SSD Video Projects / Sinhagad trip / {Format.Folder(f)} / DJI_20261122_0012.MP4"
+            ? $"Video Projects / Sinhagad trip / {Format.Folder(f)} / DJI_20261122_0012.MP4"
             : "Pocket clips are not copied with this setup.";
     }
 

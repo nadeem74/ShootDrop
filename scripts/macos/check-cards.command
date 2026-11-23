@@ -1,16 +1,15 @@
 #!/bin/bash
 # Lists plugged-in cards and shows what ShootDrop WOULD copy. Copies nothing, creates no project.
-# Also saves the projects folder (same as your old script) in ShootDrop's settings.
-cd "$(dirname "$0")" || exit 1
+# Optional: pass your projects folder to save it first, e.g.  check-cards.command "/Volumes/My SSD/Video Projects"
+cd "$(dirname "$0")/../.." || exit 1   # run from the repo root
 export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH" DOTNET_CLI_TELEMETRY_OPTOUT=1
-ROOT="/Volumes/SSD 1TB/SSD Video Projects"
+ROOT="${1:-}"
 CLI="src/ShootDrop.Cli/bin/Debug/net10.0/shootdrop.dll"
 {
   echo "== ShootDrop card check  $(date '+%Y-%m-%d %H:%M:%S') =="
   dotnet build src/ShootDrop.Cli -v q -nologo 2>&1 | tail -3
   echo; echo "== Mounted volumes =="; ls -1 /Volumes
-  echo; echo "== Save projects folder =="
-  dotnet "$CLI" config --root "$ROOT"
+  if [ -n "$ROOT" ]; then echo; echo "== Save projects folder =="; dotnet "$CLI" config --root "$ROOT"; fi
   echo; echo "== Cards ShootDrop sees =="
   dotnet "$CLI" cards
   for d in today yesterday last3; do

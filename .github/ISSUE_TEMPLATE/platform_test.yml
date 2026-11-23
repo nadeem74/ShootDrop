@@ -1,0 +1,45 @@
+name: Platform test report (Linux / Windows / Intel Mac)
+description: Tried ShootDrop on Linux, Windows or an Intel Mac? Tell us how it went, good or bad.
+labels: [platform-test, help wanted]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Please copy into a **test folder**, not your only copy of a project.
+        "Everything worked" is a useful report.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Platform
+      options: [Linux, Windows, macOS (Intel)]
+    validations:
+      required: true
+  - type: input
+    id: osversion
+    attributes:
+      label: OS version / distro and desktop
+      placeholder: "Ubuntu 24.04 GNOME / Windows 11 23H2 / macOS 14 Intel"
+  - type: input
+    id: build
+    attributes:
+      label: Which build?
+      placeholder: "Release v0.1.0 zip / built from source at commit abc123"
+  - type: input
+    id: cards
+    attributes:
+      label: Cards / devices tried
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: What worked?
+      options:
+        - label: The app starts
+        - label: My card shows up with the right camera name
+        - label: File counts and dates look right
+        - label: Copy finished and files are in the right folders
+        - label: Open folder after copy works
+        - label: Eject works
+  - type: textarea
+    id: notes
+    attributes:
+      label: Problems, screenshots, anything odd

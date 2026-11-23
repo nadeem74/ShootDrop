@@ -198,7 +198,7 @@ public class CopyTests
     {
         using var tmp = new TempDir();
         var store = new SettingsStore(Path.Combine(tmp.Path, "settings.json"));
-        var s = new AppSettings { ProjectsRoot = "/Volumes/SSD 1TB/SSD Video Projects" };
+        var s = new AppSettings { ProjectsRoot = "/Volumes/My SSD/Video Projects" };
         s.SaveSetup(new Setup("Pocket vlog", ["dji-osmo-pocket", "dji-mic"], DateRule.LastDays(3), [FileKind.Video, FileKind.Audio]));
         s.Routing.ByCard["NO NAME"] = "Video/B-roll";
         store.Save(s);

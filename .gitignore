@@ -1,17 +1,20 @@
+# Build output
 bin/
 obj/
+artifacts/
+out/
+dist/
+TestResults/
+
+# IDEs and OS
 *.user
 *.suo
 .vs/
 .idea/
+.vscode/
 .DS_Store
-TestResults/
-artifacts/
+
+# ShootDrop
 *.part
-setup.log
-build.log
-test.log
-cards.log
-app.log
-artifacts/
-app-build.log
+*.log
+*.bundle

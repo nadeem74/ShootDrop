@@ -7,7 +7,6 @@ namespace ShootDrop.App.ViewModels;
 /// <summary>First run: where projects go, which folder structure, optional AI (v0.2).</summary>
 public sealed partial class WelcomePageViewModel : PageViewModel
 {
-    private const string OldScriptRoot = "/Volumes/SSD 1TB/SSD Video Projects";
     private readonly ShootDropContext _ctx;
 
     [ObservableProperty]
@@ -24,7 +23,16 @@ public sealed partial class WelcomePageViewModel : PageViewModel
     {
         _ctx = ctx;
         _projectsRoot = ctx.Settings.ProjectsRoot.Length > 0 ? ctx.Settings.ProjectsRoot
-            : Directory.Exists(OldScriptRoot) ? OldScriptRoot : "";
+            : DefaultProjectsRoot();
+    }
+
+    /// <summary>A sensible first suggestion: ~/Movies/ShootDrop Projects on macOS, Videos on Windows/Linux.</summary>
+    private static string DefaultProjectsRoot()
+    {
+        var videos = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+        if (string.IsNullOrEmpty(videos))
+            videos = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return Path.Combine(videos, "ShootDrop Projects");
     }
 
     public bool IsMine { get => Structure == 0; set { if (value) Structure = 0; } }

@@ -3,10 +3,10 @@
 # Double-click this file in Finder. It:
 #   1. checks for the .NET 10 SDK and installs it into ~/.dotnet if missing (Microsoft's official script, no admin password)
 #   2. builds the solution and runs the tests
-#   3. writes setup.log, build.log and test.log next to this file so Claude can read them
-# It never touches your cards, your SSD or anything outside this folder and ~/.dotnet.
+#   3. writes setup.log, build.log and test.log in the repo root
+# It never touches your cards, your drives or anything outside this repo and ~/.dotnet.
 
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$0")/../.." || exit 1   # run from the repo root
 LOG="setup.log"
 : > "$LOG"
 say() { echo "$*" | tee -a "$LOG"; }
@@ -38,7 +38,6 @@ else
   fi
 fi
 
-say "Claude Code: $(command -v claude >/dev/null 2>&1 && echo found || echo 'not found (optional)')"
 say "git: $(command -v git >/dev/null 2>&1 && git --version || echo 'not found')"
 
 say ""
@@ -63,11 +62,7 @@ if [ "$BUILD_OK" = 1 ]; then
   grep -E "(Passed!|Failed!|Total tests|Passed:|Failed:)" test.log | tail -5 | tee -a "$LOG"
 fi
 
-if [ ! -d .git ] && command -v git >/dev/null 2>&1; then
-  git init -q -b main && say "Created a git repository (no commit yet)."
-fi
-
 say ""
-say "Done. Tell Claude in the chat: \"setup finished\"."
+say "Done. Next: double-click scripts/macos/build-app.command to build and open ShootDrop.app."
 echo
 read -n 1 -s -r -p "Press any key to close this window."

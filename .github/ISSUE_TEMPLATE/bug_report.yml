@@ -1,0 +1,40 @@
+name: Bug report
+description: Something went wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ShootDrop version
+      placeholder: "0.1.0"
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS (Apple Silicon), macOS (Intel), Windows, Linux, Other]
+    validations:
+      required: true
+  - type: input
+    id: cards
+    attributes:
+      label: Cameras / cards involved
+      placeholder: "DJI Osmo Pocket 3, Lumix S5, Zoom H1n"
+  - type: textarea
+    id: report
+    attributes:
+      label: copy-report.txt or logs
+      description: Paste the relevant lines from copy-report.txt in the project folder, if there is one.
+      render: text
+  - type: checkboxes
+    id: footage
+    attributes:
+      label: Footage safety
+      options:
+        - label: A file was lost, corrupted or overwritten (we treat this as top priority)

@@ -1,0 +1,24 @@
+name: Camera profile request
+description: ShootDrop doesn't recognise your camera or recorder
+labels: [camera-profile, good first issue]
+body:
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: "GoPro HERO12 Black"
+    validations:
+      required: true
+  - type: textarea
+    id: tree
+    attributes:
+      label: Card folder layout (names only, no footage)
+      description: "macOS/Linux: `tree -L 3 /Volumes/YOURCARD` or `find /Volumes/YOURCARD -maxdepth 3`. Windows: `tree /F E:\\`"
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: folder
+    attributes:
+      label: Where should its files go in a project?
+      placeholder: "Video/GoPro"
