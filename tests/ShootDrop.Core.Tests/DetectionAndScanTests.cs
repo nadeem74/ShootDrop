@@ -56,6 +56,24 @@ public class DetectionAndScanTests
     }
 
     [Fact]
+    public void Volume_name_alone_without_dcim_is_not_a_camera()
+    {
+        using var tmp = new TempDir();
+        var disk = new FakeCard(tmp, "LUMIXApplications");
+        disk.Add("LUMIX Tether.app/Contents/Info.plist", Days.At(23));
+        Assert.Null(Detect(disk, "LUMIXApplications").Profile);
+    }
+
+    [Fact]
+    public void Volume_name_still_helps_when_dcim_exists()
+    {
+        using var tmp = new TempDir();
+        var card = new FakeCard(tmp, "LUMIX");
+        card.Add("DCIM/100MEDIA/P1000001.MOV", Days.At(23));
+        Assert.Equal("panasonic-lumix", Detect(card, "LUMIX").Profile?.Id);
+    }
+
+    [Fact]
     public void Scan_keeps_only_chosen_dates_and_types_and_skips_junk()
     {
         using var tmp = new TempDir();

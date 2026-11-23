@@ -61,7 +61,9 @@ public sealed class ProfileDetector(IReadOnlyList<CameraProfile> profiles, FileT
                 return audioProfile;
         }
 
-        // 3. Volume name.
+        // 3. Volume name, only for cards that have a DCIM folder. Without this, a mounted
+        //    installer like "LUMIX Applications" was taken for a Lumix card (found 23 Nov 2026).
+        if (!hasDcim) return null;
         foreach (var p in profiles)
         {
             if (p.Match.VolumeNameContains.Any(s => volume.Name.Contains(s, StringComparison.OrdinalIgnoreCase)))
