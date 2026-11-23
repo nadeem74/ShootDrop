@@ -5,6 +5,19 @@
              x:Class="ShootDrop.App.Views.Pages.SettingsPage"
              x:DataType="vm:SettingsPageViewModel">
 
+  <UserControl.Styles>
+    <Style Selector="Border.droprow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="1.5" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.droprow.drop">
+      <Setter Property="Background" Value="#E3EEFC" />
+      <Setter Property="BorderBrush" Value="#0A64D6" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="*,Auto">
     <TabControl TabStripPlacement="Left" SelectedIndex="{Binding TabIndex}" Padding="28,16,28,16">
 
@@ -63,19 +76,26 @@
                 <TextBlock Classes="label" Margin="0" Text="Folders in every new project" />
                 <Border Classes="card" Padding="8">
                   <StackPanel>
-                    <TextBlock Classes="muted" Text="&lt;project name&gt;" Margin="8,4" />
+                    <!-- Drop here to move a folder to the top level of the project -->
+                    <Border Classes="droprow" Classes.drop="{Binding RootIsDropTarget}" Tag="root" Padding="8,6">
+                      <TextBlock Classes="muted" Text="&lt;project name&gt;" />
+                    </Border>
                     <ItemsControl ItemsSource="{Binding Folders}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:FolderRow">
-                          <Grid ColumnDefinitions="Auto,*,Auto" Margin="{Binding Indent}" MinHeight="34">
-                            <Path Data="M3 6 L10 6 L12 8 L21 8 L21 19 L3 19 Z" Fill="#DCE8FA" Stroke="#0A64D6" StrokeThickness="1.2"
-                                  Width="16" Height="13" Stretch="Uniform" Margin="24,0,8,0" VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                              <TextBlock Text="{Binding Name}" FontWeight="Medium" />
-                              <TextBlock Classes="muted" FontSize="12" Text="{Binding Feeds}" IsVisible="{Binding HasFeeds}" />
-                            </StackPanel>
-                            <Button Grid.Column="2" Classes="remove" Content="×" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove this folder" />
-                          </Grid>
+                          <!-- Drag a folder onto another to move it inside; drop a camera here to route it -->
+                          <Border Classes="droprow" Classes.drop="{Binding IsDropTarget}" Tag="folder"
+                                  PointerPressed="OnDragStart" Cursor="SizeAll" ToolTip.Tip="Drag onto another folder to move it">
+                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="{Binding Indent}" MinHeight="34">
+                              <Path Data="M3 6 L10 6 L12 8 L21 8 L21 19 L3 19 Z" Fill="#DCE8FA" Stroke="#0A64D6" StrokeThickness="1.2"
+                                    Width="16" Height="13" Stretch="Uniform" Margin="24,0,8,0" VerticalAlignment="Center" />
+                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                                <TextBlock Classes="muted" FontSize="12" Text="{Binding Feeds}" IsVisible="{Binding HasFeeds}" />
+                              </StackPanel>
+                              <Button Grid.Column="2" Classes="remove" Content="×" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove this folder" />
+                            </Grid>
+                          </Border>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -87,7 +107,9 @@
                   <ComboBox Grid.Column="1" ItemsSource="{Binding Parents}" SelectedItem="{Binding NewFolderParent}" HorizontalAlignment="Stretch" />
                   <Button Grid.Column="2" Classes="plain" Content="Add folder" Command="{Binding AddFolderCommand}" Margin="8,0,0,0" />
                 </Grid>
-                <TextBlock Classes="muted" FontSize="12" Text="Empty folders are created too, so every project looks the same." />
+                <TextBlock Text="{Binding FolderMessage}" Foreground="#0A64D6" TextWrapping="Wrap" />
+                <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                           Text="Drag a folder onto another to move it inside, or onto ‹project name› to move it to the top. Drag a camera from the right onto a folder to send its files there. Empty folders are created too, so every project looks the same." />
               </StackPanel>
 
               <StackPanel Grid.Column="1" Spacing="8" Margin="12,0,0,0">
@@ -98,10 +120,17 @@
                       <DataTemplate x:DataType="vm:RouteRow">
                         <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="12,8">
                           <Grid ColumnDefinitions="*,190">
-                            <StackPanel VerticalAlignment="Center">
-                              <TextBlock Text="{Binding Source}" FontWeight="Medium" />
-                              <TextBlock Classes="muted" FontSize="12" Text="{Binding What}" />
-                            </StackPanel>
+                            <!-- Drag the source onto a folder on the left instead of using the list -->
+                            <Border Tag="route" Background="Transparent" PointerPressed="OnDragStart" Cursor="SizeAll"
+                                    ToolTip.Tip="Drag onto a folder on the left">
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="⠿" Foreground="#9A9CA3" FontSize="16" VerticalAlignment="Center" />
+                                <StackPanel VerticalAlignment="Center">
+                                  <TextBlock Text="{Binding Source}" FontWeight="Medium" />
+                                  <TextBlock Classes="muted" FontSize="12" Text="{Binding What}" />
+                                </StackPanel>
+                              </StackPanel>
+                            </Border>
                             <ComboBox Grid.Column="1" ItemsSource="{Binding Options}" SelectedItem="{Binding Selected}" HorizontalAlignment="Stretch" />
                           </Grid>
                         </Border>
@@ -276,5 +305,12 @@
         <Button Grid.Column="1" Classes="primary" Content="Done" Command="{Binding DoneCommand}" />
       </Grid>
     </Border>
+
+    <!-- What you're dragging follows the pointer -->
+    <Canvas Grid.RowSpan="2" IsHitTestVisible="False">
+      <Border x:Name="DragGhost" IsVisible="False" Background="#0A64D6" CornerRadius="8" Padding="10,6" Opacity="0.92">
+        <TextBlock x:Name="DragGhostText" Foreground="White" FontWeight="SemiBold" />
+      </Border>
+    </Canvas>
   </Grid>
 </UserControl>

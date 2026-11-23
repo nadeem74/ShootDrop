@@ -9,8 +9,11 @@ using ShootDrop.Core.Projects;
 
 namespace ShootDrop.App.ViewModels;
 
-public sealed class FolderRow(string name, string path, int depth, string feeds, Action<string> remove)
+public sealed partial class FolderRow(string name, string path, int depth, string feeds, Action<string> remove) : ObservableObject
 {
+    /// <summary>True while something is dragged over this folder (drag and drop in the folder editor).</summary>
+    [ObservableProperty] private bool _isDropTarget;
+
     public string Name { get; } = name;
     public string Path { get; } = path;
     public Avalonia.Thickness Indent { get; } = new(depth * 22, 0, 0, 0);
@@ -362,6 +365,72 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         _ctx.Settings.Template = t;
         _ctx.Save();
         LoadFolders();
+    }
+
+    // ---- Drag and drop in the folder tree ---------------------------------------------------------
+    public const string ProjectRootTarget = "";
+
+    [ObservableProperty] private string _folderMessage = "";
+
+    /// <summary>True while something is dragged over the project itself (move to the top level).</summary>
+    [ObservableProperty] private bool _rootIsDropTarget;
+
+    /// <summary>A folder was dropped on <paramref name="target"/> (a folder path, or "" for the project itself).</summary>
+    public void MoveFolder(string folder, string target)
+    {
+        var routesBefore = SourceRoutes();
+        FolderTemplate moved;
+        string newPath;
+        try
+        {
+            moved = _ctx.Settings.Template.Move(folder, target, out newPath);
+        }
+        catch (InvalidOperationException e)
+        {
+            FolderMessage = e.Message;
+            return;
+        }
+        if (ReferenceEquals(moved, _ctx.Settings.Template)) return;
+
+        // Everything that was going into the moved folder follows it, including cameras that only used their
+        // profile's default folder (written down explicitly now, so they don't recreate the old folder).
+        var r = _ctx.Settings.Routing;
+        foreach (var route in routesBefore)
+        {
+            if (route.Folder.Length == 0) continue;
+            var rebased = FolderTemplate.Rebase(route.Folder, folder, newPath);
+            if (rebased != route.Folder.Trim('/')) SetRoute(route.Key, rebased);
+        }
+        foreach (var (card, value) in r.ByCard.ToList()) r.ByCard[card] = FolderTemplate.Rebase(value, folder, newPath);
+
+        FolderMessage = $"Moved “{folder.Split('/')[^1]}” to {(target.Length == 0 ? "the top of the project" : "“" + target + "”")}.";
+        SetTemplate(moved with { Name = "Custom" });
+    }
+
+    /// <summary>A source (camera, card or file type) was dropped on a folder: its files go there from now on.</summary>
+    public void RouteToFolder(string routeKey, string target)
+    {
+        if (target.Length == 0)
+        {
+            FolderMessage = "Drop it on a folder, not on the project itself.";
+            return;
+        }
+        var row = Routes.FirstOrDefault(x => x.Key == routeKey);
+        if (row is null) return;
+        row.Selected = target; // OnRouteChanged saves and refreshes
+        FolderMessage = $"{row.Source} now goes to {Format.Folder(target)}.";
+    }
+
+    private void SetRoute(string routeKey, string folder)
+    {
+        var r = _ctx.Settings.Routing;
+        var (type, key) = (routeKey.Split(':', 2)[0], routeKey.Split(':', 2)[1]);
+        switch (type)
+        {
+            case "profile": r.ByProfile[key] = folder; break;
+            case "card": r.ByCard[key] = folder; break;
+            case "kind": r.ByKind[Enum.Parse<FileKind>(key)] = folder; break;
+        }
     }
 
     private void RemoveFolder(string path) => SetTemplate(_ctx.Settings.Template.Without(path) with { Name = "Custom" });
