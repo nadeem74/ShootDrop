@@ -8,7 +8,7 @@ Owner and architect: Nadeem Ahmed. He reviews every change; explain decisions in
 Builds on macOS (Apple Silicon, .NET SDK 10.0.404) with 0 warnings, and all 24 tests pass (23 Nov 2026).
 `Setup ShootDrop.command` re-runs build + tests and writes setup.log / build.log / test.log.
 `Check cards.command` lists cards and does a dry run (nothing copied) into cards.log.
-`Open ShootDrop.command` starts the app.
+`Build and open ShootDrop.command` builds artifacts/ShootDrop.app (self-contained) and opens it.
 
 ## Commands
 

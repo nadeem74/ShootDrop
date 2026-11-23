@@ -54,6 +54,9 @@ public sealed class ShootDropService
         return _volumes.List()
             .Where(v => projectsRoot is null || !IsInside(projectsRoot, v.Path))
             .Select(detector.Detect)
+            // An unknown volume only counts as a card if it looks like one (has DCIM). This hides
+            // installer disks like "LUMIXApplications" and backup drives (found 23 Nov 2026).
+            .Where(c => c.IsKnown || Directory.Exists(Path.Combine(c.Volume.Path, "DCIM")))
             .ToList();
     }
 

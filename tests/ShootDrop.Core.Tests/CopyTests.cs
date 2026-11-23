@@ -149,6 +149,23 @@ public class CopyTests
     }
 
     [Fact]
+    public void Disks_without_dcim_or_a_known_profile_are_not_listed_as_cards()
+    {
+        using var tmp = new TempDir();
+        var installer = new FakeCard(tmp, "LUMIXApplications");
+        installer.Add("LUMIX Tether.app/Contents/Info.plist", Days.At(23));
+        var gopro = new FakeCard(tmp, "NO NAME");
+        gopro.Add("DCIM/100GOPRO/GX010001.MP4", Days.At(23));
+        var mic = new FakeCard(tmp, "DJI MIC");
+        mic.Add("DJI_Audio_001/REC_0001.WAV", Days.At(23));
+
+        var service = new ShootDropService(new FolderVolumeProvider(installer.Root, gopro.Root, mic.Root), ProfileCatalog.BuiltIn(), new FixedClock());
+        var names = service.DetectCards(new AppSettings()).Select(c => c.Name).Order().ToList();
+
+        Assert.Equal(new[] { "DJI MIC", "NO NAME" }, names);
+    }
+
+    [Fact]
     public void Settings_round_trip()
     {
         using var tmp = new TempDir();

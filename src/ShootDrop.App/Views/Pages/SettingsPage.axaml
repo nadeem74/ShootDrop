@@ -1,0 +1,235 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShootDrop.App.ViewModels"
+             xmlns:sys="using:System"
+             x:Class="ShootDrop.App.Views.Pages.SettingsPage"
+             x:DataType="vm:SettingsPageViewModel">
+
+  <Grid RowDefinitions="*,Auto">
+    <TabControl TabStripPlacement="Left" SelectedIndex="{Binding TabIndex}" Padding="28,16,28,16">
+
+      <!-- General -->
+      <TabItem Header="General">
+        <ScrollViewer>
+          <StackPanel Spacing="18" MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Classes="h2" Text="General" />
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Margin="0" Text="Projects folder" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding ProjectsRoot}" IsReadOnly="True" FontFamily="Menlo, monospace" FontSize="13" />
+                <Button Grid.Column="1" Classes="plain" Content="Change…" Command="{Binding ChooseRootCommand}" Margin="8,0,0,0" />
+              </Grid>
+              <TextBlock Classes="muted" Text="Every copy makes a new project folder here." />
+            </StackPanel>
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Margin="0" Text="Template folder (optional)" />
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBox Text="{Binding TemplateDirectory}" IsReadOnly="True" Watermark="Not set: folders come from Project folders"
+                         FontFamily="Menlo, monospace" FontSize="13" />
+                <Button Grid.Column="1" Classes="plain" Content="Choose…" Command="{Binding ChooseTemplateDirectoryCommand}" Margin="8,0,0,0" />
+                <Button Grid.Column="2" Classes="link" Content="Clear" Command="{Binding ClearTemplateDirectoryCommand}" Margin="8,0,0,0"
+                        IsVisible="{Binding HasTemplateDirectory}" />
+              </Grid>
+              <TextBlock Classes="muted" Text="If set, this folder (with any files in it, like a DaVinci project) is copied into every new project, as your old script did." />
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Margin="0" Text="After copying" />
+              <CheckBox IsChecked="{Binding OpenFinderWhenDone}" Content="Open the project in Finder" />
+              <CheckBox IsChecked="{Binding EjectWhenDone}" Content="Eject the cards (only when every file was verified)" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Margin="0" Text="Checksum" />
+              <TextBlock Text="xxHash64: every file is re-read after copying and must match the card." />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Project folders -->
+      <TabItem Header="Project folders">
+        <ScrollViewer>
+          <StackPanel Spacing="16">
+            <TextBlock Classes="h2" Text="Project folder structure" />
+            <WrapPanel>
+              <TextBlock Text="Start from" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,8" />
+              <Button Classes="chip" Content="My template" Command="{Binding UsePresetCommand}" CommandParameter="mine" />
+              <Button Classes="chip" Content="A-roll / B-roll" Command="{Binding UsePresetCommand}" CommandParameter="roll" />
+              <Button Classes="chip" Content="One folder" Command="{Binding UsePresetCommand}" CommandParameter="one" />
+              <Button Classes="chip" Content="Import from a folder…" Command="{Binding ImportTemplateCommand}" />
+            </WrapPanel>
+
+            <Grid ColumnDefinitions="*,*">
+              <StackPanel Spacing="8" Margin="0,0,12,0">
+                <TextBlock Classes="label" Margin="0" Text="Folders in every new project" />
+                <Border Classes="card" Padding="8">
+                  <StackPanel>
+                    <TextBlock Classes="muted" Text="&lt;project name&gt;" Margin="8,4" />
+                    <ItemsControl ItemsSource="{Binding Folders}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FolderRow">
+                          <Grid ColumnDefinitions="Auto,*,Auto" Margin="{Binding Indent}" MinHeight="34">
+                            <Path Data="M3 6 L10 6 L12 8 L21 8 L21 19 L3 19 Z" Fill="#DCE8FA" Stroke="#0A64D6" StrokeThickness="1.2"
+                                  Width="16" Height="13" Stretch="Uniform" Margin="24,0,8,0" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                              <TextBlock Classes="muted" FontSize="12" Text="{Binding Feeds}" IsVisible="{Binding HasFeeds}" />
+                            </StackPanel>
+                            <Button Grid.Column="2" Classes="remove" Content="×" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove this folder" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+                <TextBox Text="{Binding NewFolderName}" Watermark="New folder, e.g. B-roll" />
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <TextBlock Classes="muted" Text="Inside" VerticalAlignment="Center" Margin="0,0,8,0" />
+                  <ComboBox Grid.Column="1" ItemsSource="{Binding Parents}" SelectedItem="{Binding NewFolderParent}" HorizontalAlignment="Stretch" />
+                  <Button Grid.Column="2" Classes="plain" Content="Add folder" Command="{Binding AddFolderCommand}" Margin="8,0,0,0" />
+                </Grid>
+                <TextBlock Classes="muted" FontSize="12" Text="Empty folders are created too, so every project looks the same." />
+              </StackPanel>
+
+              <StackPanel Grid.Column="1" Spacing="8" Margin="12,0,0,0">
+                <TextBlock Classes="label" Margin="0" Text="Where each source goes" />
+                <Border Classes="card" Padding="0">
+                  <ItemsControl ItemsSource="{Binding Routes}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:RouteRow">
+                        <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="12,8">
+                          <Grid ColumnDefinitions="*,190">
+                            <StackPanel VerticalAlignment="Center">
+                              <TextBlock Text="{Binding Source}" FontWeight="Medium" />
+                              <TextBlock Classes="muted" FontSize="12" Text="{Binding What}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Options}" SelectedItem="{Binding Selected}" HorizontalAlignment="Stretch" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Border>
+                <Border Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="label" Margin="0" Text="Example: where one clip lands" />
+                    <TextBlock Text="{Binding Example}" FontFamily="Menlo, monospace" FontSize="12" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Cameras -->
+      <TabItem Header="Cameras">
+        <ScrollViewer>
+          <StackPanel Spacing="14" MaxWidth="820" HorizontalAlignment="Left">
+            <TextBlock Classes="h2" Text="Cameras" />
+            <TextBlock Classes="muted" FontSize="14" Text="How ShootDrop recognises each card. Profiles are small JSON files; anyone can add one to the project on GitHub." />
+            <Border Classes="card" Padding="0">
+              <StackPanel>
+                <Grid ColumnDefinitions="200,*,170" Margin="14,10">
+                  <TextBlock Classes="label" Margin="0" Text="Camera" />
+                  <TextBlock Grid.Column="1" Classes="label" Margin="0" Text="Recognised by" />
+                  <TextBlock Grid.Column="2" Classes="label" Margin="0" Text="Goes to" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding Profiles}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ProfileRow">
+                      <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,10">
+                        <Grid ColumnDefinitions="200,*,170">
+                          <TextBlock Classes="name" Text="{Binding Name}" TextWrapping="Wrap" />
+                          <TextBlock Grid.Column="1" Text="{Binding RecognisedBy}" TextWrapping="Wrap" Margin="0,0,12,0" />
+                          <TextBlock Grid.Column="2" Text="{Binding Folder}" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+            <Button Classes="plain" HorizontalAlignment="Left" Content="Open my profiles folder" Command="{Binding OpenProfilesFolderCommand}" />
+
+            <StackPanel Spacing="8" IsVisible="{Binding HasRemembered}">
+              <TextBlock Classes="label" Margin="0,8,0,0" Text="Cards you routed by hand" />
+              <Border Classes="card" Padding="0">
+                <ItemsControl ItemsSource="{Binding Remembered}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:RememberedCard">
+                      <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="14,8">
+                        <Grid ColumnDefinitions="200,*,Auto">
+                          <TextBlock Classes="name" Text="{Binding Card}" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Text="{Binding Folder}" VerticalAlignment="Center" />
+                          <Button Grid.Column="2" Classes="link" Content="Forget" Command="{Binding ForgetCommand}" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- File types -->
+      <TabItem Header="File types">
+        <ScrollViewer>
+          <StackPanel Spacing="14" MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Classes="h2" Text="File types" />
+            <TextBlock Classes="muted" FontSize="14" Text="Which extensions count as each type. Files with other extensions (like .THM thumbnails) are never copied." />
+            <Border Classes="card" Padding="0">
+              <ItemsControl ItemsSource="{Binding TypeGroups}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ExtensionGroup">
+                    <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="14,10">
+                      <Grid ColumnDefinitions="120,*">
+                        <TextBlock Classes="name" Text="{Binding Kind}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Extensions}" FontFamily="Menlo, monospace" FontSize="12" TextWrapping="Wrap" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+            <TextBlock Classes="label" Margin="0,6,0,0" Text="Add an extension" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox Text="{Binding NewExtension}" Watermark="e.g. BRAW" Width="160" />
+              <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding NewKind}" MinWidth="120" VerticalAlignment="Stretch" />
+              <Button Classes="plain" Content="Add" Command="{Binding AddExtensionCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Shortcut & background -->
+      <TabItem Header="Shortcut &amp; background">
+        <StackPanel Spacing="12" MaxWidth="700" HorizontalAlignment="Left">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Classes="h2" Text="Shortcut and background" />
+            <Border Background="#FFF1D6" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
+              <TextBlock Text="Planned for v0.2" FontSize="12" FontWeight="SemiBold" Foreground="#8A5A00" />
+            </Border>
+          </StackPanel>
+          <TextBlock Classes="muted" FontSize="14"
+                     Text="Copy without opening the app: a keyboard shortcut from anywhere on your Mac, start at login, and keep running in the menu bar. The menu bar icon already works while ShootDrop is open." />
+          <Border Classes="card">
+            <StackPanel Spacing="8" Opacity="0.6">
+              <CheckBox Content="Start ShootDrop when I log in" IsEnabled="False" />
+              <CheckBox Content="Keep running in the menu bar when the window is closed" IsEnabled="False" />
+              <TextBlock Text="Keyboard shortcut: ⌃⌥⌘C → show the Ready to copy window" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </TabItem>
+    </TabControl>
+
+    <Border Grid.Row="1" Classes="band" BorderThickness="0,1,0,0" Padding="24,14">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" VerticalAlignment="Center" Text="Changes are saved straight away." />
+        <Button Grid.Column="1" Classes="primary" Content="Done" Command="{Binding DoneCommand}" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

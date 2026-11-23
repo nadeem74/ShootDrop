@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShootDrop.App.ViewModels"
+             xmlns:sys="using:System"
+             x:Class="ShootDrop.App.Views.Pages.DonePage"
+             x:DataType="vm:DonePageViewModel">
+
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Classes="band" BorderThickness="0,0,0,1" Padding="24,28">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Border Width="64" Height="64" CornerRadius="32" Background="{StaticResource GoodTint}" Margin="0,0,20,0" IsVisible="{Binding Success}">
+          <TextBlock Text="✓" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Good}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <Border Width="64" Height="64" CornerRadius="32" Background="{StaticResource WarnTint}" Margin="0,0,20,0" IsVisible="{Binding NotSuccess}">
+          <TextBlock Text="!" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Warn}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+          <TextBlock Classes="h1" FontSize="28" Text="{Binding Headline}" />
+          <TextBlock FontSize="15" Text="{Binding Subtitle}" TextWrapping="Wrap" />
+        </StackPanel>
+        <Button Grid.Column="2" Classes="primary" Content="Open in Finder" Command="{Binding OpenInFinderCommand}" VerticalAlignment="Center" Margin="16,0,0,0" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer Grid.Row="1">
+      <Grid ColumnDefinitions="*,320" Margin="24,20">
+        <StackPanel Spacing="10" Margin="0,0,20,0">
+          <TextBlock Classes="label" Text="Result by card" />
+          <Border Classes="card" Padding="0">
+            <StackPanel>
+              <Grid ColumnDefinitions="2*,2*,70,110" Margin="14,10">
+                <TextBlock Classes="label" Margin="0" Text="Card" />
+                <TextBlock Grid.Column="1" Classes="label" Margin="0" Text="Folder" />
+                <TextBlock Grid.Column="2" Classes="label" Margin="0" Text="Files" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="3" Classes="label" Margin="0" Text="Checksum" HorizontalAlignment="Right" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ResultRow">
+                    <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,10">
+                      <Grid ColumnDefinitions="2*,2*,70,110">
+                        <TextBlock Classes="name" Text="{Binding Card}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Folder}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Files}" HorizontalAlignment="Right" />
+                        <TextBlock Grid.Column="3" Text="{Binding Result}" HorizontalAlignment="Right" Classes.good="{Binding Ok}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+          <Border Classes="warn" IsVisible="{Binding HasFailures}">
+            <ItemsControl ItemsSource="{Binding Failures}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="sys:String">
+                  <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{StaticResource Warn}" FontSize="13" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Border>
+          <TextBlock Classes="muted" Text="{Binding ReportText}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="12">
+          <TextBlock Classes="label" Text="Next" Margin="0" />
+          <Border Classes="card" IsVisible="{Binding HasAirDropNote}">
+            <TextBlock Text="{Binding AirDropNote}" TextWrapping="Wrap" />
+          </Border>
+          <Border Classes="card">
+            <StackPanel Spacing="8">
+              <Button Classes="plain" HorizontalAlignment="Stretch" Content="Eject the cards" Command="{Binding EjectCommand}" IsVisible="{Binding CanEject}" />
+              <TextBlock Classes="good" Text="{Binding EjectText}" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" FontSize="12" Text="ShootDrop never formats or empties a card. Do that in the camera when you're ready." />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Classes="band" BorderThickness="0,1,0,0" Padding="24,14">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" VerticalAlignment="Center" Text="Every copied file was re-read and matched against the card." />
+        <Button Grid.Column="1" Classes="plain" Content="Start a new copy" Command="{Binding NewCopyCommand}" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

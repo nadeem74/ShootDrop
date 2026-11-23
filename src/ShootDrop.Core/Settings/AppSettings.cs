@@ -30,6 +30,15 @@ public sealed class AppSettings
     /// <summary>The exact choices of the last copy; "Copy like last time" uses this (FR-20).</summary>
     public Setup? LastUsed { get; set; }
 
+    /// <summary>After copying: open the project in Finder.</summary>
+    public bool OpenFinderWhenDone { get; set; } = true;
+
+    /// <summary>After copying: eject the cards that were copied.</summary>
+    public bool EjectWhenDone { get; set; }
+
+    /// <summary>Whether the smart box is switched on in the main window.</summary>
+    public bool SmartBoxOn { get; set; } = true;
+
     /// <summary>Extra extensions the user added, e.g. "braw" → Video.</summary>
     public Dictionary<string, FileKind> ExtraExtensions { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 

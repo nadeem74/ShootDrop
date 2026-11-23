@@ -1,8 +1,27 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ShootDrop.App.App"
-             RequestedThemeVariant="Default">
+             Name="ShootDrop"
+             RequestedThemeVariant="Light">
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="avares://ShootDrop/Styles/Theme.axaml" />
   </Application.Styles>
+
+  <!-- Menu bar icon (FR-21, first version): quick access to the Ready window. -->
+  <TrayIcon.Icons>
+    <TrayIcons>
+      <TrayIcon Icon="avares://ShootDrop/Assets/tray.png" ToolTipText="ShootDrop">
+        <TrayIcon.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="Ready to copy" Click="OnTrayReady" />
+            <NativeMenuItem Header="More options…" Click="OnTrayMain" />
+            <NativeMenuItem Header="Settings…" Click="OnTraySettings" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Quit ShootDrop" Click="OnTrayQuit" />
+          </NativeMenu>
+        </TrayIcon.Menu>
+      </TrayIcon>
+    </TrayIcons>
+  </TrayIcon.Icons>
 </Application>

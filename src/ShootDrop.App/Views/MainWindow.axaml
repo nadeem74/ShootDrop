@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ShootDrop.App.ViewModels"
+        xmlns:p="using:ShootDrop.App.Views.Pages"
+        x:Class="ShootDrop.App.Views.MainWindow"
+        x:DataType="vm:ShellViewModel"
+        Title="ShootDrop"
+        Icon="avares://ShootDrop/Assets/icon-256.png"
+        Width="460" Height="720" MinWidth="420" MinHeight="560"
+        WindowStartupLocation="CenterScreen">
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="{x:Type vm:WelcomePageViewModel}"><p:WelcomePage /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ReadyPageViewModel}"><p:ReadyPage /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:MainPageViewModel}"><p:MainPage /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ReviewPageViewModel}"><p:ReviewPage /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:CopyingPageViewModel}"><p:CopyingPage /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:DonePageViewModel}"><p:DonePage /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:SettingsPageViewModel}"><p:SettingsPage /></DataTemplate>
+  </Window.DataTemplates>
+
+  <ContentControl Content="{Binding Current}" />
+</Window>

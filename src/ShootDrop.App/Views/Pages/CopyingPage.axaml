@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShootDrop.App.ViewModels"
+             x:Class="ShootDrop.App.Views.Pages.CopyingPage"
+             x:DataType="vm:CopyingPageViewModel">
+
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Classes="band" BorderThickness="0,0,0,1" Padding="24,26,24,20">
+      <StackPanel Spacing="14">
+        <TextBlock Classes="muted" FontSize="14" Text="{Binding Title}" />
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <TextBlock Text="{Binding PercentText}" FontSize="48" FontWeight="Bold" VerticalAlignment="Bottom" />
+          <TextBlock Grid.Column="1" Text="{Binding Headline}" FontSize="15" VerticalAlignment="Bottom" Margin="16,0,0,8" />
+          <TextBlock Grid.Column="2" Classes="muted" FontSize="14" Text="{Binding Eta}" VerticalAlignment="Bottom" Margin="0,0,0,8" />
+        </Grid>
+        <ProgressBar Value="{Binding Percent}" Maximum="100" Height="12" MinHeight="12" CornerRadius="6" />
+        <TextBlock FontSize="13">
+          <Run Text="Now: " FontWeight="SemiBold" /><Run Text="{Binding Current}" FontFamily="Menlo, monospace" /><Run Text="  · copying and checksum in one read" Foreground="{StaticResource Muted}" />
+        </TextBlock>
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1">
+      <StackPanel Margin="24,20">
+        <TextBlock Classes="label" Text="By card" />
+        <Border Classes="card" Padding="16,4">
+          <ItemsControl ItemsSource="{Binding Cards}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CardProgress">
+                <StackPanel Margin="0,12" Spacing="8">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Classes="name" Text="{Binding Name}" MinWidth="140" />
+                    <TextBlock Grid.Column="1" Classes="muted" Text="{Binding Folder, StringFormat='→ {0}'}" />
+                    <TextBlock Grid.Column="2" Text="{Binding Status}" FontSize="13" Classes.good="{Binding IsDone}" />
+                  </Grid>
+                  <ProgressBar Value="{Binding Percent}" Maximum="100" Classes.done="{Binding IsDone}" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Classes="band" BorderThickness="0,1,0,0" Padding="24,14">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" VerticalAlignment="Center"
+                   Text="Cancel stops after the current file. Finished files stay, and the next run skips them." />
+        <Button Grid.Column="1" Classes="plain" Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding !Cancelling}" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

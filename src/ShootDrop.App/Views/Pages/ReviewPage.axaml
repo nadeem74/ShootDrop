@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShootDrop.App.ViewModels"
+             xmlns:sys="using:System"
+             x:Class="ShootDrop.App.Views.Pages.ReviewPage"
+             x:DataType="vm:ReviewPageViewModel">
+
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer>
+      <StackPanel Margin="24,24,24,24" Spacing="18">
+        <StackPanel Spacing="4">
+          <TextBlock Classes="h1" Text="{Binding Title}" />
+          <TextBlock Classes="muted" FontSize="14" Text="{Binding Subtitle}" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,320">
+          <StackPanel Spacing="18" Margin="0,0,20,0">
+            <StackPanel>
+              <TextBlock Classes="label" Text="What goes where" />
+              <Border Classes="card" Padding="0">
+                <StackPanel>
+                  <Grid ColumnDefinitions="2*,2*,80,100" Margin="14,10">
+                    <TextBlock Classes="label" Margin="0" Text="Card" />
+                    <TextBlock Grid.Column="1" Classes="label" Margin="0" Text="Goes to" />
+                    <TextBlock Grid.Column="2" Classes="label" Margin="0" Text="Files" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="3" Classes="label" Margin="0" Text="Size" HorizontalAlignment="Right" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PlanRow">
+                        <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,10">
+                          <Grid ColumnDefinitions="2*,2*,80,100">
+                            <TextBlock Classes="name" Text="{Binding Card}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Folder}" />
+                            <TextBlock Grid.Column="2" Text="{Binding Files}" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="3" Text="{Binding Size}" HorizontalAlignment="Right" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,10">
+                    <Grid ColumnDefinitions="2*,2*,80,100">
+                      <TextBlock Text="Total" FontWeight="Bold" />
+                      <TextBlock Grid.Column="2" Text="{Binding TotalFiles}" FontWeight="Bold" HorizontalAlignment="Right" />
+                      <TextBlock Grid.Column="3" Text="{Binding TotalSize}" FontWeight="Bold" HorizontalAlignment="Right" />
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Classes="label" Text="Checks" />
+              <Border Classes="card" Padding="14,6">
+                <ItemsControl ItemsSource="{Binding Checks}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="sys:String">
+                      <Grid ColumnDefinitions="26,*" Margin="0,7">
+                        <TextBlock Classes="good" Text="✓" />
+                        <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Spacing="18">
+            <StackPanel>
+              <TextBlock Classes="label" Text="Project folder" />
+              <Border Classes="card">
+                <ItemsControl ItemsSource="{Binding Tree}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TreeLine">
+                      <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,3">
+                        <Border Width="{Binding Indent}" />
+                        <Path Data="M3 6 L10 6 L12 8 L21 8 L21 19 L3 19 Z" Fill="#DCE8FA" Stroke="#0A64D6" StrokeThickness="1.2"
+                              Width="16" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Text}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Note}" FontSize="12" Classes.good="{Binding !Empty}" Classes.muted="{Binding Empty}" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <TextBlock Classes="muted" FontSize="12" Text="{Binding Location}" Margin="0,6,0,0" />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Classes="label" Text="When done" />
+              <CheckBox IsChecked="{Binding OpenFinderWhenDone}" Content="Open the project in Finder" />
+              <CheckBox IsChecked="{Binding EjectWhenDone}" Content="Eject the cards" />
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="1" Classes="band" BorderThickness="0,1,0,0" Padding="24,14">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock Classes="muted" VerticalAlignment="Center" Text="Cards are only read. Nothing in the project is overwritten." />
+        <Button Grid.Column="1" Classes="plain" Content="Back" Command="{Binding BackCommand}" Margin="0,0,10,0" />
+        <Button Grid.Column="2" Classes="primary" Content="Start copy" Command="{Binding StartCopyCommand}" IsEnabled="{Binding EnoughSpace}" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

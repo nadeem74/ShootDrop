@@ -13,3 +13,5 @@ build.log
 test.log
 cards.log
 app.log
+artifacts/
+app-build.log

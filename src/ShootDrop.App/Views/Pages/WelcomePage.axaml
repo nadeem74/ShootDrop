@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShootDrop.App.ViewModels"
+             x:Class="ShootDrop.App.Views.Pages.WelcomePage"
+             x:DataType="vm:WelcomePageViewModel">
+
+  <ScrollViewer>
+    <Border Classes="card" MaxWidth="720" Margin="24" Padding="36,30" VerticalAlignment="Top">
+      <StackPanel Spacing="4">
+        <StackPanel Orientation="Horizontal" Spacing="14" Margin="0,0,0,6">
+          <Image Source="avares://ShootDrop/Assets/icon-256.png" Width="56" Height="56" />
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Classes="h1" FontSize="28" Text="Set up ShootDrop" />
+            <TextBlock Classes="muted" FontSize="15" Text="Three choices, once. You can change all of them later in Settings." />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- 1 -->
+        <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="0,18">
+          <Grid ColumnDefinitions="Auto,*">
+            <Border Width="32" Height="32" CornerRadius="16" Background="{StaticResource Accent}" VerticalAlignment="Top" Margin="0,0,16,0">
+              <TextBlock Text="1" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="10">
+              <TextBlock Text="Where should projects go?" FontSize="16" FontWeight="SemiBold" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding ProjectsRoot}" Watermark="/Volumes/SSD 1TB/SSD Video Projects" FontFamily="Menlo, monospace" FontSize="13" />
+                <Button Grid.Column="1" Classes="plain" Content="Choose…" Command="{Binding ChooseRootCommand}" Margin="8,0,0,0" />
+              </Grid>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- 2 -->
+        <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="0,18">
+          <Grid ColumnDefinitions="Auto,*">
+            <Border Width="32" Height="32" CornerRadius="16" Background="{StaticResource Accent}" VerticalAlignment="Top" Margin="0,0,16,0">
+              <TextBlock Text="2" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="8">
+              <TextBlock Text="Folder structure for new projects" FontSize="16" FontWeight="SemiBold" />
+              <Border Classes="card" Padding="12,8">
+                <RadioButton GroupName="structure" IsChecked="{Binding IsMine}">
+                  <TextBlock><Run Text="My template " FontWeight="SemiBold" /><Run Text="Audio / DJI Mic, Video / Pocket 4P, Camera, iPhone, Images" Foreground="{StaticResource Muted}" /></TextBlock>
+                </RadioButton>
+              </Border>
+              <Border Classes="card" Padding="12,8">
+                <RadioButton GroupName="structure" IsChecked="{Binding IsRoll}">
+                  <TextBlock><Run Text="A-roll / B-roll " FontWeight="SemiBold" /><Run Text="Video/A-roll, Video/B-roll, Audio, Images" Foreground="{StaticResource Muted}" /></TextBlock>
+                </RadioButton>
+              </Border>
+              <Border Classes="card" Padding="12,8">
+                <RadioButton GroupName="structure" IsChecked="{Binding IsOne}">
+                  <TextBlock><Run Text="Everything in one folder " FontWeight="SemiBold" /><Run Text="simplest" Foreground="{StaticResource Muted}" /></TextBlock>
+                </RadioButton>
+              </Border>
+              <Border Classes="card" Padding="12,8" IsVisible="{Binding HasImported}">
+                <RadioButton GroupName="structure" IsChecked="{Binding IsImported}">
+                  <TextBlock><Run Text="Copy my folder: " FontWeight="SemiBold" /><Run Text="{Binding ImportedName}" Foreground="{StaticResource Muted}" /></TextBlock>
+                </RadioButton>
+              </Border>
+              <Button Classes="link" HorizontalAlignment="Left" Content="Use my own template folder (e.g. “Project template”)…" Command="{Binding ImportTemplateCommand}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- 3 -->
+        <Border Padding="0,18">
+          <Grid ColumnDefinitions="Auto,*">
+            <Border Width="32" Height="32" CornerRadius="16" Background="#B9BCC2" VerticalAlignment="Top" Margin="0,0,16,0">
+              <TextBlock Text="3" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="6">
+              <TextBlock Text="Smart box helper" FontSize="16" FontWeight="SemiBold" />
+              <TextBlock Classes="muted" FontSize="14"
+                         Text="Quick rules already understand “yesterday”, “last 3 days”, card names and Hinglish like “kal”. A small AI model for free-form sentences comes in v0.2. It will run only on this Mac." />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Button Classes="primary big" HorizontalAlignment="Right" Padding="28,10" Content="Get started" Command="{Binding GetStartedCommand}" />
+      </StackPanel>
+    </Border>
+  </ScrollViewer>
+</UserControl>

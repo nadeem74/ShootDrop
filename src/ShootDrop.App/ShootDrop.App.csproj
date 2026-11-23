@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ShootDrop.Core\ShootDrop.Core.csproj" />
   </ItemGroup>
 

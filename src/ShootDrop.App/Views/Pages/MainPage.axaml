@@ -1,0 +1,223 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShootDrop.App.ViewModels"
+             xmlns:sys="using:System"
+             x:Class="ShootDrop.App.Views.Pages.MainPage"
+             x:DataType="vm:MainPageViewModel">
+
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer>
+      <StackPanel>
+
+        <!-- 1. Copy like last time -->
+        <Border Classes="band" BorderThickness="0,0,0,1" Padding="24,22">
+          <StackPanel Spacing="14">
+            <Grid ColumnDefinitions="*,300">
+              <StackPanel Spacing="10" Margin="0,0,24,0">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <Border Width="40" Height="40" CornerRadius="10" Background="{StaticResource Accent}">
+                    <Path Data="M13 3 L5 14 L11 14 L10 21 L18 10 L12 10 Z" Fill="White" Width="20" Height="20" Stretch="Uniform" />
+                  </Border>
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Copy like last time" FontSize="22" FontWeight="Bold" />
+                    <TextBlock Classes="muted" FontSize="14" Text="One click, with the setup you used before." />
+                  </StackPanel>
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding QuickPills}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="sys:String">
+                      <Border Classes="pill"><TextBlock Text="{Binding}" FontSize="13" /></Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Bottom">
+                <TextBlock Classes="label" Text="Project name" Margin="0" />
+                <TextBox Text="{Binding QuickProjectName}" />
+                <Button Classes="primary big" HorizontalAlignment="Stretch" Command="{Binding QuickCopyCommand}"
+                        IsEnabled="{Binding QuickCanCopy}" Content="{Binding QuickButton}" />
+              </StackPanel>
+            </Grid>
+
+            <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Text="Or a saved setup" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Top" Margin="0,7,12,0" />
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding Setups}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SetupChip">
+                      <Button Classes="chip" Classes.active="{Binding IsActive}" Content="{Binding Name}" Command="{Binding UseCommand}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Top">
+                  <TextBox Text="{Binding NewSetupName}" Watermark="Name this setup" Width="170" MinHeight="32" FontSize="13" />
+                  <Button Classes="link" Content="+ Save current setup" Command="{Binding SaveSetupCommand}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+            <TextBlock Classes="muted" FontSize="12"
+                       Text="Copy now goes straight to copying. Cards stay untouched, nothing is overwritten, and every file is checked." />
+          </StackPanel>
+        </Border>
+
+        <Border Height="10" Background="#ECEDF0" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" />
+
+        <!-- 2. Or choose what to copy: smart box -->
+        <Border Classes="band" BorderThickness="0,0,0,1">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="h2" Text="Or choose what to copy" />
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <CheckBox IsChecked="{Binding SmartOn}" Content="Smart box" FontWeight="SemiBold" Margin="0,0,12,0" />
+              <TextBox Grid.Column="1" Text="{Binding Query}" IsVisible="{Binding SmartOn}"
+                       Watermark="e.g. all cards, yesterday for Sinhagad trip">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding ApplySmartCommand}" />
+                </TextBox.KeyBindings>
+              </TextBox>
+              <TextBlock Grid.Column="1" Classes="muted" IsVisible="{Binding !SmartOn}" VerticalAlignment="Center"
+                         Text="Off. Choose cards, dates and file types below." />
+              <Button Grid.Column="2" Classes="primary" Content="Apply" Margin="8,0,0,0"
+                      Command="{Binding ApplySmartCommand}" IsVisible="{Binding SmartOn}" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding SmartOn}">
+              <TextBlock Classes="muted" Text="Try:" VerticalAlignment="Top" Margin="0,7,6,0" />
+              <ItemsControl ItemsSource="{Binding Tries}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:TryChip">
+                    <Button Classes="chip" Content="{Binding Text}" Command="{Binding RunCommand}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+            <Border Classes="info" IsVisible="{Binding ShowUnderstood}">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Text="✓" Foreground="{StaticResource Accent}" FontWeight="Bold" Margin="0,0,10,0" />
+                <TextBlock Grid.Column="1" TextWrapping="Wrap">
+                  <Run Text="Understood: " FontWeight="SemiBold" /><Run Text="{Binding Understood}" />
+                </TextBlock>
+                <TextBlock Grid.Column="2" Classes="muted" FontSize="12" Text="Quick rules · choices below are filled in" Margin="12,0,0,0" />
+              </Grid>
+            </Border>
+            <Border Classes="warn" IsVisible="{Binding ShowMiss}">
+              <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Warn}" FontSize="13"
+                         Text="Couldn't find a date, card or file type in that. From v0.2 a small local AI model takes phrases the quick rules miss. For now, pick below." />
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <!-- 3. Cards | dates, types, project -->
+        <Grid ColumnDefinitions="*,340" Margin="24,20,24,24">
+          <StackPanel Spacing="10" Margin="0,0,20,0">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="label" Text="Cards found" />
+              <TextBlock Grid.Column="1" Classes="muted" FontSize="12" Text="Watching for new cards" />
+            </Grid>
+            <Border Classes="card" IsVisible="{Binding NoCards}">
+              <TextBlock Classes="muted" Text="No cards found. Plug in an SD card or connect a camera or mic; it appears here within a couple of seconds." />
+            </Border>
+            <ItemsControl ItemsSource="{Binding Cards}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CardItemViewModel">
+                  <Border Classes="card" Classes.selected="{Binding Highlight}" Padding="14,8" Margin="0,0,0,10">
+                    <StackPanel>
+                      <Grid ColumnDefinitions="Auto,Auto,*,Auto" MinHeight="48">
+                        <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Width="36" Height="36" CornerRadius="8" Background="{StaticResource Pill}" Margin="4,0,12,0">
+                          <Panel>
+                            <Path IsVisible="{Binding !IsMic}" Stroke="#4A4A50" StrokeThickness="1.6" Width="18" Height="20" Stretch="Uniform"
+                                  Data="M7 3 L15 3 L19 7 L19 20 L6 20 L6 3 Z M10 3 L10 7 M13 3 L13 7" />
+                            <Path IsVisible="{Binding IsMic}" Stroke="#4A4A50" StrokeThickness="1.6" Width="16" Height="20" Stretch="Uniform"
+                                  Data="M12 3 C13.7 3 15 4.3 15 6 L15 12 C15 13.7 13.7 15 12 15 C10.3 15 9 13.7 9 12 L9 6 C9 4.3 10.3 3 12 3 Z M5 11 C5 15 8 18 12 18 C16 18 19 15 19 11 M12 18 L12 21" />
+                          </Panel>
+                        </Border>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                          <TextBlock Classes="name" Text="{Binding Name}" />
+                          <TextBlock Classes="muted" Text="{Binding Device}" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="3" Text="{Binding Stat}" FontSize="13" VerticalAlignment="Center" Margin="12,0,0,0" />
+                      </Grid>
+                      <StackPanel Orientation="Horizontal" Spacing="10" Margin="88,4,0,6" IsVisible="{Binding ShowFolderPicker}">
+                        <TextBlock Classes="muted" Text="Goes to" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding Folders}" SelectedItem="{Binding Destination}" PlaceholderText="Choose a folder…" MinWidth="200" />
+                        <TextBlock Classes="muted" FontSize="12" Text="Remembered for this card" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Spacing="20">
+            <StackPanel>
+              <TextBlock Classes="label" Text="Recorded on" />
+              <ListBox Classes="seg" ItemsSource="{Binding DateOptions}" SelectedIndex="{Binding DateIndex}" />
+              <Grid ColumnDefinitions="*,*" Margin="0,8,0,0" IsVisible="{Binding IsCustom}">
+                <StackPanel Margin="0,0,6,0">
+                  <TextBlock Classes="muted" FontSize="12" Text="From" />
+                  <CalendarDatePicker SelectedDate="{Binding CustomFrom}" HorizontalAlignment="Stretch" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                  <TextBlock Classes="muted" FontSize="12" Text="To" />
+                  <CalendarDatePicker SelectedDate="{Binding CustomTo}" HorizontalAlignment="Stretch" />
+                </StackPanel>
+              </Grid>
+              <TextBlock Text="{Binding DateLabel}" FontSize="13" Margin="0,8,0,0" />
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Classes="label" Text="File types" />
+              <UniformGrid Columns="2">
+                <Border Classes="card" Padding="10,4" Margin="0,0,6,6">
+                  <Grid ColumnDefinitions="*,Auto"><CheckBox IsChecked="{Binding Video}" Content="Video" /><TextBlock Grid.Column="1" Classes="muted" FontSize="11" Text="MP4 MOV" VerticalAlignment="Center" /></Grid>
+                </Border>
+                <Border Classes="card" Padding="10,4" Margin="6,0,0,6">
+                  <Grid ColumnDefinitions="*,Auto"><CheckBox IsChecked="{Binding Audio}" Content="Audio" /><TextBlock Grid.Column="1" Classes="muted" FontSize="11" Text="WAV MP3" VerticalAlignment="Center" /></Grid>
+                </Border>
+                <Border Classes="card" Padding="10,4" Margin="0,0,6,0">
+                  <Grid ColumnDefinitions="*,Auto"><CheckBox IsChecked="{Binding Photos}" Content="Photos" /><TextBlock Grid.Column="1" Classes="muted" FontSize="11" Text="JPG RW2" VerticalAlignment="Center" /></Grid>
+                </Border>
+                <Border Classes="card" Padding="10,4" Margin="6,0,0,0">
+                  <Grid ColumnDefinitions="*,Auto"><CheckBox IsChecked="{Binding Proxies}" Content="Proxies" /><TextBlock Grid.Column="1" Classes="muted" FontSize="11" Text="LRF" VerticalAlignment="Center" /></Grid>
+                </Border>
+              </UniformGrid>
+              <TextBlock Classes="muted" FontSize="12" Text="Remembered from last time." Margin="0,6,0,0" />
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Text="Project" Margin="0" />
+              <TextBox Text="{Binding ProjectName}" />
+              <TextBlock FontSize="13"><Run Text="Saved in " /><Run Text="{Binding ProjectsRootText}" FontWeight="SemiBold" /></TextBlock>
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock FontSize="13" VerticalAlignment="Center"><Run Text="Folders from " /><Run Text="{Binding TemplateText}" FontWeight="SemiBold" /><Run Text=" ·" /></TextBlock>
+                <Button Classes="link" Content="Edit folder structure" Command="{Binding EditFoldersCommand}" FontSize="13" />
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Footer -->
+    <Border Grid.Row="1" Classes="band" BorderThickness="0,1,0,0" Padding="24,14">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="{Binding TotalLine}" FontSize="15" FontWeight="SemiBold" />
+          <TextBlock Classes="muted" Text="{Binding WarnLine}" />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="link" Content="Settings" Command="{Binding OpenSettingsCommand}" Margin="0,0,12,0" />
+        <Button Grid.Column="2" Classes="plain" Content="Ready window" Command="{Binding BackToReadyCommand}" Margin="0,0,10,0" />
+        <Button Grid.Column="3" Classes="primary" Content="Review copy" Command="{Binding ReviewCommand}" />
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

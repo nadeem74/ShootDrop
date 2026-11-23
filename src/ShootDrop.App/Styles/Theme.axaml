@@ -1,0 +1,236 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Colours and sizes from the wireframes (canvas "Card Offload App — macOS wireframes & UI flow"). -->
+  <Styles.Resources>
+    <SolidColorBrush x:Key="Accent" Color="#0A64D6" />
+    <SolidColorBrush x:Key="AccentHover" Color="#0853B3" />
+    <SolidColorBrush x:Key="AccentTint" Color="#EEF4FD" />
+    <SolidColorBrush x:Key="AccentLine" Color="#BFD5F5" />
+    <SolidColorBrush x:Key="Ink" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="Muted" Color="#5F5F66" />
+    <SolidColorBrush x:Key="Line" Color="#DCDDE0" />
+    <SolidColorBrush x:Key="SoftLine" Color="#EEEFF1" />
+    <SolidColorBrush x:Key="Page" Color="#F7F7F8" />
+    <SolidColorBrush x:Key="Pill" Color="#F0F1F3" />
+    <SolidColorBrush x:Key="Good" Color="#1E7F3A" />
+    <SolidColorBrush x:Key="GoodTint" Color="#EAF6EE" />
+    <SolidColorBrush x:Key="Warn" Color="#5C3D00" />
+    <SolidColorBrush x:Key="WarnTint" Color="#FFF6E5" />
+    <SolidColorBrush x:Key="WarnLine" Color="#F1D29A" />
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{StaticResource Page}" />
+    <Setter Property="Foreground" Value="{StaticResource Ink}" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+
+  <!-- Text -->
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="24" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.h2">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <Style Selector="TextBlock.label">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource Muted}" />
+    <Setter Property="Margin" Value="0,0,0,8" />
+  </Style>
+  <Style Selector="TextBlock.muted">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{StaticResource Muted}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.name">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.good">
+    <Setter Property="Foreground" Value="{StaticResource Good}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Surfaces -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="White" />
+    <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="14" />
+  </Style>
+  <Style Selector="Border.band">
+    <Setter Property="Background" Value="White" />
+    <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+    <Setter Property="Padding" Value="24,18" />
+  </Style>
+  <Style Selector="Border.pill">
+    <Setter Property="Background" Value="{StaticResource Pill}" />
+    <Setter Property="CornerRadius" Value="15" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="Margin" Value="0,0,8,8" />
+  </Style>
+  <Style Selector="Border.info">
+    <Setter Property="Background" Value="{StaticResource AccentTint}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentLine}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,10" />
+  </Style>
+  <Style Selector="Border.warn">
+    <Setter Property="Background" Value="{StaticResource WarnTint}" />
+    <Setter Property="BorderBrush" Value="{StaticResource WarnLine}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,10" />
+  </Style>
+  <Style Selector="Border.success">
+    <Setter Property="Background" Value="{StaticResource GoodTint}" />
+    <Setter Property="BorderBrush" Value="#A9D8B8" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="14,12" />
+  </Style>
+  <Style Selector="Border.selected">
+    <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+  </Style>
+
+  <!-- Buttons -->
+  <Style Selector="Button">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{StaticResource Accent}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="MinHeight" Value="44" />
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentHover}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#06428F" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#C9D8EF" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.big">
+    <Setter Property="MinHeight" Value="52" />
+    <Setter Property="FontSize" Value="16" />
+  </Style>
+  <Style Selector="Button.plain">
+    <Setter Property="Background" Value="White" />
+    <Setter Property="BorderBrush" Value="#C9CBD0" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.chip">
+    <Setter Property="Background" Value="White" />
+    <Setter Property="BorderBrush" Value="#C9CBD0" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="12,4" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Margin" Value="0,0,8,8" />
+  </Style>
+  <Style Selector="Button.chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentTint}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+  </Style>
+  <Style Selector="Button.active">
+    <Setter Property="Background" Value="{StaticResource Accent}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.link">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="#0A5FCC" />
+    <Setter Property="Padding" Value="2,4" />
+    <Setter Property="MinHeight" Value="28" />
+  </Style>
+  <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="#084A9E" />
+  </Style>
+  <Style Selector="Button.remove">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="#6E6E73" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="FontSize" Value="16" />
+  </Style>
+
+  <!-- Segmented control: a horizontal ListBox -->
+  <Style Selector="ListBox.seg">
+    <Setter Property="Background" Value="White" />
+    <Setter Property="BorderBrush" Value="#C9CBD0" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <UniformGrid Rows="1" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ListBox.seg ListBoxItem">
+    <Setter Property="MinHeight" Value="40" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Padding" Value="6,0" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+  <Style Selector="ListBox.seg ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource Accent}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="ListBox.seg ListBoxItem:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentHover}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="MinHeight" Value="40" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontSize" Value="15" />
+  </Style>
+  <Style Selector="ComboBox">
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{StaticResource Accent}" />
+    <Setter Property="Background" Value="#E3E5E8" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="MinHeight" Value="8" />
+  </Style>
+  <Style Selector="ProgressBar.done">
+    <Setter Property="Foreground" Value="{StaticResource Good}" />
+  </Style>
+  <Style Selector="TabControl TabItem">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="MinHeight" Value="38" />
+    <Setter Property="Padding" Value="14,6" />
+  </Style>
+  <Style Selector="CheckBox, RadioButton">
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+</Styles>
