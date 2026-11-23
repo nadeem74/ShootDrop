@@ -60,15 +60,15 @@ public sealed record FolderTemplate(string Name, IReadOnlyList<string> Folders)
         var from = folder.Trim('/');
         var parent = (newParent ?? "").Trim('/');
         var name = from.Split('/')[^1];
-        newPath = parent.Length == 0 ? name : parent + "/" + name;
+        var to = parent.Length == 0 ? name : parent + "/" + name;
+        newPath = to;
 
         if (from.Length == 0) throw new InvalidOperationException("Pick a folder to move.");
         if (IsSameOrInside(parent, from)) throw new InvalidOperationException($"“{name}” can't go inside itself.");
-        if (string.Equals(newPath, from, StringComparison.OrdinalIgnoreCase)) return this; // dropped where it already is
-        if (AllFolders().Any(f => string.Equals(f, newPath, StringComparison.OrdinalIgnoreCase)))
+        if (string.Equals(to, from, StringComparison.OrdinalIgnoreCase)) return this; // dropped where it already is
+        if (AllFolders().Any(f => string.Equals(f, to, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException($"There is already a “{name}” folder there.");
 
-        var to = newPath;
         return this with { Folders = Folders.Select(f => Rebase(f, from, to)).ToList() };
     }
 
