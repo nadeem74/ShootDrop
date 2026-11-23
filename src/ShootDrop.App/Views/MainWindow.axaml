@@ -19,5 +19,19 @@
     <DataTemplate DataType="{x:Type vm:SettingsPageViewModel}"><p:SettingsPage /></DataTemplate>
   </Window.DataTemplates>
 
-  <ContentControl Content="{Binding Current}" />
+  <Grid>
+    <ContentControl Content="{Binding Current}" />
+
+    <!-- Toast: a short message at the bottom, with an optional action such as Undo -->
+    <Border IsVisible="{Binding HasToast}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16,0,16,84"
+            Background="#1D1D1F" CornerRadius="12" Padding="16,10" MaxWidth="560" BoxShadow="0 6 24 0 #40000000">
+      <StackPanel Orientation="Horizontal" Spacing="14">
+        <TextBlock Text="{Binding ToastText}" Foreground="White" FontSize="14" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="400" />
+        <Button IsVisible="{Binding HasToastAction}" Content="{Binding ToastAction}" Command="{Binding ToastActCommand}"
+                Background="Transparent" Foreground="#7DB2FF" FontWeight="SemiBold" Padding="4,2" BorderThickness="0" Cursor="Hand" />
+        <Button Content="✕" Command="{Binding DismissToastCommand}" Background="Transparent" Foreground="#A0A0A8"
+                Padding="4,2" BorderThickness="0" Cursor="Hand" ToolTip.Tip="Dismiss" />
+      </StackPanel>
+    </Border>
+  </Grid>
 </Window>

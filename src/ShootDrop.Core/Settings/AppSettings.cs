@@ -78,6 +78,9 @@ public sealed class AppSettings
         Setups.Add(setup);
     }
 
+    /// <summary>Built-in extensions the user removed, e.g. ".mts".</summary>
+    public HashSet<string> RemovedExtensions { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
     public FileTypeCatalog BuildFileTypes()
     {
         var catalog = FileTypeCatalog.Default;
@@ -85,7 +88,30 @@ public sealed class AppSettings
         {
             catalog = catalog.With(ext, kind);
         }
+        foreach (var ext in RemovedExtensions)
+        {
+            catalog = catalog.Without(ext);
+        }
         return catalog;
+    }
+
+    /// <summary>Adds (or moves) an extension to a type. Re-adding a removed built-in one brings it back.</summary>
+    public void AddExtension(string extension, FileKind kind)
+    {
+        var ext = FileTypeCatalog.Normalize(extension);
+        RemovedExtensions.Remove(ext);
+        ExtraExtensions.Remove(ext.TrimStart('.'));
+        if (FileTypeCatalog.Default.Extensions.TryGetValue(ext, out var builtIn) && builtIn == kind) return;
+        ExtraExtensions[ext.TrimStart('.')] = kind;
+    }
+
+    /// <summary>Stops copying an extension, built-in or added by the user.</summary>
+    public void RemoveExtension(string extension)
+    {
+        var ext = FileTypeCatalog.Normalize(extension);
+        ExtraExtensions.Remove(ext.TrimStart('.'));
+        ExtraExtensions.Remove(ext);
+        if (FileTypeCatalog.Default.Extensions.ContainsKey(ext)) RemovedExtensions.Add(ext);
     }
 }
 

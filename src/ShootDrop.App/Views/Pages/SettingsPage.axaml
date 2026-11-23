@@ -150,15 +150,82 @@
         </ScrollViewer>
       </TabItem>
 
-      <!-- Cameras -->
+      <!-- Cameras: list, add, edit -->
       <TabItem Header="Cameras">
         <ScrollViewer>
-          <StackPanel Spacing="14" MaxWidth="820" HorizontalAlignment="Left">
-            <TextBlock Classes="h2" Text="Cameras" />
-            <TextBlock Classes="muted" FontSize="14" Text="How ShootDrop recognises each card. Profiles are small JSON files; anyone can add one to the project on GitHub." />
+          <StackPanel Spacing="14" MaxWidth="860" HorizontalAlignment="Left">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="h2" Text="Cameras" />
+                <TextBlock Classes="muted" FontSize="14" TextWrapping="Wrap"
+                           Text="How ShootDrop recognises each card and where its files go. Add your own camera, or edit one of these." />
+              </StackPanel>
+              <Button Grid.Column="1" Classes="primary" Content="+ Add camera" Command="{Binding AddCameraCommand}"
+                      IsVisible="{Binding NotEditingCamera}" VerticalAlignment="Top" />
+            </Grid>
+
+            <!-- Editor -->
+            <Border Classes="card" IsVisible="{Binding IsEditingCamera}" BorderBrush="#0A64D6" BorderThickness="1.5" Padding="20">
+              <StackPanel Spacing="14">
+                <TextBlock Classes="h2" FontSize="18" Text="{Binding CameraEditorTitle}" />
+
+                <!-- Fill in from a card -->
+                <Border Background="#F2F6FD" CornerRadius="10" Padding="14,12">
+                  <StackPanel Spacing="8">
+                    <TextBlock FontWeight="SemiBold" Text="Quickest: plug in the camera's card and let ShootDrop look at it" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasPluggedCards}">
+                      <ComboBox ItemsSource="{Binding PluggedCards}" SelectedItem="{Binding SelectedCard}" MinWidth="220" />
+                      <Button Classes="plain" Content="Fill in from this card" Command="{Binding FillFromCardCommand}" />
+                    </StackPanel>
+                    <TextBlock Classes="muted" IsVisible="{Binding NoPluggedCards}" TextWrapping="Wrap"
+                               Text="No card is plugged in right now. Plug one in and click Add camera again, or fill in the form yourself." />
+                    <TextBlock Classes="muted" FontSize="12" Text="It only reads folder and file names. Nothing on the card is changed." />
+                  </StackPanel>
+                </Border>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="label" Margin="0" Text="Name" />
+                    <TextBox Text="{Binding CamName}" Watermark="e.g. GoPro HERO 12" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Margin="0" Text="Its files go to" />
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBox Text="{Binding CamFolder}" Watermark="e.g. Video/GoPro" />
+                      <ComboBox Grid.Column="1" ItemsSource="{Binding FolderChoices}" SelectedItem="{Binding CamFolderPick}"
+                                PlaceholderText="Pick…" Width="110" Margin="6,0,0,0" ToolTip.Tip="Pick an existing project folder" />
+                    </Grid>
+                  </StackPanel>
+                </Grid>
+
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="label" Margin="0" Text="Recognise its card by (any one is enough; separate several with commas)" />
+                  <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                    <TextBlock Classes="muted" Text="File names start with" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1" Text="{Binding CamPrefixes}" Watermark="e.g. GX, DJI_" />
+                    <TextBlock Grid.Row="1" Classes="muted" Text="DCIM folder name has" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CamDcim}" Watermark="e.g. GOPRO (from 100GOPRO)" />
+                    <TextBlock Grid.Row="2" Classes="muted" Text="Card has the folder" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CamMarkers}" Watermark="e.g. PRIVATE/M4ROOT" />
+                    <TextBlock Grid.Row="3" Classes="muted" Text="Card name has" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CamVolume}" Watermark="e.g. gopro (weakest: cards get renamed)" />
+                    <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding CamAudioOnly}"
+                              Content="It's an audio recorder (no DCIM folder, only audio files)" />
+                  </Grid>
+                </StackPanel>
+
+                <TextBlock Text="{Binding CamError}" Foreground="#B3261E" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                  <Button Classes="plain" Content="Cancel" Command="{Binding CancelCameraCommand}" />
+                  <Button Classes="primary" Content="Save camera" Command="{Binding SaveCameraCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- List -->
             <Border Classes="card" Padding="0">
               <StackPanel>
-                <Grid ColumnDefinitions="200,*,170" Margin="14,10">
+                <Grid ColumnDefinitions="220,*,170,130" Margin="16,10">
                   <TextBlock Classes="label" Margin="0" Text="Camera" />
                   <TextBlock Grid.Column="1" Classes="label" Margin="0" Text="Recognised by" />
                   <TextBlock Grid.Column="2" Classes="label" Margin="0" Text="Goes to" />
@@ -166,11 +233,18 @@
                 <ItemsControl ItemsSource="{Binding Profiles}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:ProfileRow">
-                      <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,10">
-                        <Grid ColumnDefinitions="200,*,170">
-                          <TextBlock Classes="name" Text="{Binding Name}" TextWrapping="Wrap" />
-                          <TextBlock Grid.Column="1" Text="{Binding RecognisedBy}" TextWrapping="Wrap" Margin="0,0,12,0" />
-                          <TextBlock Grid.Column="2" Text="{Binding Folder}" />
+                      <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="16,12">
+                        <Grid ColumnDefinitions="220,*,170,130">
+                          <StackPanel Spacing="2">
+                            <TextBlock Classes="name" Text="{Binding Name}" TextWrapping="Wrap" />
+                            <TextBlock Classes="muted" FontSize="11" Text="{Binding Badge}" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="1" Text="{Binding RecognisedBy}" TextWrapping="Wrap" Margin="0,0,12,0" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="2" Text="{Binding Folder}" VerticalAlignment="Center" />
+                          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Classes="link" Content="Edit" Command="{Binding EditCommand}" />
+                            <Button Classes="link" Content="{Binding DeleteLabel}" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+                          </StackPanel>
                         </Grid>
                       </Border>
                     </DataTemplate>
@@ -178,7 +252,8 @@
                 </ItemsControl>
               </StackPanel>
             </Border>
-            <Button Classes="plain" HorizontalAlignment="Left" Content="Open my profiles folder" Command="{Binding OpenProfilesFolderCommand}" />
+            <Button Classes="link" HorizontalAlignment="Left" Content="Show my camera files in Finder (for sharing on GitHub)"
+                    Command="{Binding OpenProfilesFolderCommand}" />
 
             <StackPanel Spacing="8" IsVisible="{Binding HasRemembered}">
               <TextBlock Classes="label" Margin="0,8,0,0" Text="Cards you routed by hand" />
@@ -202,20 +277,37 @@
         </ScrollViewer>
       </TabItem>
 
-      <!-- File types -->
+      <!-- File types: chips you can remove (with Undo) and add -->
       <TabItem Header="File types">
         <ScrollViewer>
           <StackPanel Spacing="14" MaxWidth="760" HorizontalAlignment="Left">
             <TextBlock Classes="h2" Text="File types" />
-            <TextBlock Classes="muted" FontSize="14" Text="Which extensions count as each type. Files with other extensions (like .THM thumbnails) are never copied." />
+            <TextBlock Classes="muted" FontSize="14" TextWrapping="Wrap"
+                       Text="Which extensions count as each type. Click × to stop copying one. Files with other extensions (like .THM thumbnails) are never copied." />
             <Border Classes="card" Padding="0">
               <ItemsControl ItemsSource="{Binding TypeGroups}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ExtensionGroup">
-                    <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="14,10">
-                      <Grid ColumnDefinitions="120,*">
-                        <TextBlock Classes="name" Text="{Binding Kind}" />
-                        <TextBlock Grid.Column="1" Text="{Binding Extensions}" FontFamily="Menlo, monospace" FontSize="12" TextWrapping="Wrap" />
+                    <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="16,12">
+                      <Grid ColumnDefinitions="110,*">
+                        <TextBlock Classes="name" Text="{Binding Kind}" VerticalAlignment="Top" Margin="0,6,0,0" />
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding Items}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ExtensionChip">
+                              <Border Background="#F1F2F4" CornerRadius="14" Padding="10,3,4,3" Margin="0,0,6,6">
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                  <TextBlock Text="{Binding Name}" FontFamily="Menlo, monospace" FontSize="12" VerticalAlignment="Center" />
+                                  <Button Content="×" Command="{Binding RemoveCommand}" Background="Transparent" BorderThickness="0"
+                                          Padding="6,0" FontSize="14" Foreground="#6E6E73" Cursor="Hand"
+                                          ToolTip.Tip="Stop copying this type" />
+                                </StackPanel>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                       </Grid>
                     </Border>
                   </DataTemplate>

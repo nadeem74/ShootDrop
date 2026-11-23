@@ -299,7 +299,12 @@ public sealed partial class MainPageViewModel : PageViewModel
         QuickPills.Add(_ctx.Settings.Template.Name + " folders");
     }
 
-    partial void OnDateIndexChanged(int value) => Recompute();
+    partial void OnDateIndexChanged(int value)
+    {
+        // Start the calendar on today rather than an empty box.
+        if (value == (int)DateMode.Custom && CustomFrom is null) CustomFrom = _ctx.Today.ToDateTime(TimeOnly.MinValue);
+        Recompute();
+    }
     partial void OnCustomFromChanged(DateTime? value) => Recompute();
     partial void OnCustomToChanged(DateTime? value) => Recompute();
     partial void OnVideoChanged(bool value) => Recompute();

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ShootDrop.App.ViewModels"
+             xmlns:c="using:ShootDrop.App.Views.Controls"
              xmlns:sys="using:System"
              x:Class="ShootDrop.App.Views.Pages.ReadyPage"
              x:DataType="vm:ReadyPageViewModel">
@@ -18,9 +19,9 @@
             <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding DateOptions}" SelectedIndex="{Binding DateIndex}" MinWidth="200" />
             <!-- Calendar: one day, or a range when "to" is set -->
             <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0" IsVisible="{Binding IsPicking}">
-              <CalendarDatePicker SelectedDate="{Binding PickFrom}" Width="130" ToolTip.Tip="First day" />
+              <c:DateButton SelectedDate="{Binding PickFrom}" Width="160" />
               <TextBlock Classes="muted" Text="to" VerticalAlignment="Center" />
-              <CalendarDatePicker SelectedDate="{Binding PickTo}" Width="130" Watermark="same day" ToolTip.Tip="Last day (optional)" />
+              <c:DateButton SelectedDate="{Binding PickTo}" Width="160" Placeholder="Same day" CanClear="True" />
             </StackPanel>
           </Grid>
         </StackPanel>

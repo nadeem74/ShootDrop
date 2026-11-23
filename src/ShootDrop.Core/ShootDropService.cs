@@ -32,7 +32,7 @@ public sealed record CopyRunResult(CopyPlan Plan, IReadOnlyList<CopyFileResult> 
 public sealed class ShootDropService
 {
     private readonly IVolumeProvider _volumes;
-    private readonly IReadOnlyList<CameraProfile> _profiles;
+    private IReadOnlyList<CameraProfile> _profiles;
     private readonly TimeProvider _clock;
 
     public ShootDropService(IVolumeProvider volumes, IReadOnlyList<CameraProfile> profiles, TimeProvider? clock = null)
@@ -40,6 +40,13 @@ public sealed class ShootDropService
         _volumes = volumes;
         _profiles = profiles;
         _clock = clock ?? TimeProvider.System;
+    }
+
+    /// <summary>The camera profiles in use. Replace after the user adds, edits or deletes a camera in the app.</summary>
+    public IReadOnlyList<CameraProfile> Profiles
+    {
+        get => _profiles;
+        set => _profiles = value;
     }
 
     public DateOnly Today => DateOnly.FromDateTime(_clock.GetLocalNow().DateTime);

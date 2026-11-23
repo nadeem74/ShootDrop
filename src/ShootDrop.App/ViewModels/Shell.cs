@@ -81,10 +81,54 @@ public sealed partial class ShellViewModel : ObservableObject
 
     [ObservableProperty] private PageViewModel? _current;
 
+    // ---- Toast ------------------------------------------------------------------------------------
+    private readonly Avalonia.Threading.DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromSeconds(6) };
+    private Action? _toastHandler;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasToast))]
+    private string? _toastText;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasToastAction))]
+    private string? _toastAction;
+
+    public bool HasToast => !string.IsNullOrEmpty(ToastText);
+    public bool HasToastAction => !string.IsNullOrEmpty(ToastAction);
+
+    /// <summary>Shows a short message at the bottom of the window for a few seconds, optionally with an action (e.g. Undo).</summary>
+    public void ShowToast(string text, string? actionLabel = null, Action? action = null)
+    {
+        ToastText = text;
+        ToastAction = action is null ? null : actionLabel;
+        _toastHandler = action;
+        _toastTimer.Stop();
+        _toastTimer.Interval = TimeSpan.FromSeconds(action is null ? 4 : 8);
+        _toastTimer.Start();
+    }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private void ToastAct()
+    {
+        var handler = _toastHandler;
+        DismissToast();
+        handler?.Invoke();
+    }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private void DismissToast()
+    {
+        _toastTimer.Stop();
+        _toastHandler = null;
+        ToastText = null;
+        ToastAction = null;
+    }
+
     public ShellViewModel(ShootDropContext ctx)
     {
         _ctx = ctx;
         ctx.Shell = this;
+        _toastTimer.Tick += (_, _) => DismissToast();
     }
 
     public void Start()
