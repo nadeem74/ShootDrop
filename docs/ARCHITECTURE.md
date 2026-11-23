@@ -83,3 +83,4 @@ separately in v2) apply to existing users without a reset.
 | One core, thin front ends, the safety rules | [ADR-003](adr/0003-architecture.md) |
 | xxHash64 instead of MD5/SHA | [ADR-004](adr/0004-checksum-xxhash64.md) |
 | Rules first, small local model later | [ADR-005](adr/0005-smart-box-and-local-ai.md) |
+| Menu bar, shortcut, login item, card watching | [ADR-006](adr/0006-menu-bar-service.md) |

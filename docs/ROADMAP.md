@@ -12,10 +12,14 @@ Ideas are welcome: open an issue. Items marked **help wanted** are good places t
 - `shootdrop` CLI on the same engine
 - CI on macOS, Linux and Windows; release builds for all four targets
 
-## v0.2: always ready
+## v0.2: always ready (in progress)
 
-- Global keyboard shortcut that opens Ready to copy or copies straight away (FR-23)
-- Start at login and keep running in the menu bar when the window is closed (FR-24)
+Done: menu bar menu, keep running when closed, start at login, customisable shortcut, auto-open when a card is plugged in,
+drag and drop in the folder editor, date picker in Ready to copy, near-zero idle cost ([ADR-006](adr/0006-menu-bar-service.md)).
+
+Still to do:
+
+
 - **Local AI smart box**: a small offline model for sentences the rules don't cover ([AI.md](AI.md)) — *help wanted*
 - Signed and notarised macOS build, Homebrew cask
 - Linux and Windows: fix what testers find, then mark them supported — *help wanted*

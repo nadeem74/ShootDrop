@@ -36,7 +36,7 @@ from every card into a project folder you define, checks every byte, understands
 | FR-01 | Detect plugged-in volumes and refresh when cards change | ✅ |
 | FR-02 | Identify each card's device through profiles | ✅ |
 | FR-03 | Card list with file counts and sizes for the current filter | ✅ |
-| FR-04 | Date filter: one day or a range | ✅ |
+| FR-04 | Date filter: one day or a range | ✅ (calendar in both windows, v0.2) |
 | FR-05 | File types: video, audio, photo, proxy, plus custom extensions | ✅ |
 | FR-06 | Project created from a template folder; each profile routes to a subfolder | ✅ |
 | FR-07 | Unknown card: choose its folder, remembered per card | ✅ |
@@ -49,14 +49,14 @@ from every card into a project folder you define, checks every byte, understands
 | FR-14 | Copy report inside the project | ✅ |
 | FR-15 | Command-line mode on the same engine | ✅ |
 | FR-16 | Multi-day range → one project, or one per day | One project for now |
-| FR-17 | Folder structure editor with presets and template import | ✅ |
-| FR-18 | Routing table per camera and per file type (incl. audio, "Don't copy") | ✅ |
+| FR-17 | Folder structure editor with presets and template import | ✅ (drag and drop, v0.2) |
+| FR-18 | Routing table per camera and per file type (incl. audio, "Don't copy") | ✅ (drag a camera onto a folder, v0.2) |
 | FR-19 | Saved setups | ✅ |
 | FR-20 | One-click "Copy like last time" | ✅ |
-| FR-21 | Menu bar item | First cut |
+| FR-21 | Menu bar item | ✅ v0.2 |
 | FR-22 | Compact "Ready to copy" landing window | ✅ |
-| FR-23 | Global keyboard shortcut | v0.2 |
-| FR-24 | Start at login, run in the background | v0.2 |
+| FR-23 | Global keyboard shortcut | ✅ v0.2, customisable (macOS) |
+| FR-24 | Start at login, run in the background | ✅ v0.2 (macOS) |
 
 ## Non-functional requirements
 
