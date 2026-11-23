@@ -31,6 +31,8 @@ public partial class DateButton : UserControl
 
     private bool _syncing;
 
+    private Flyout Popup => (Flyout)Trigger.Flyout!;
+
     public DateButton()
     {
         InitializeComponent();

@@ -10,7 +10,7 @@
       <TextBlock x:Name="Label" FontSize="14" VerticalAlignment="Center" />
     </StackPanel>
     <Button.Flyout>
-      <Flyout x:Name="Popup" Placement="BottomEdgeAlignedLeft">
+      <Flyout Placement="BottomEdgeAlignedLeft">
         <StackPanel Spacing="6">
           <Calendar x:Name="Picker" SelectionMode="SingleDate" IsTodayHighlighted="True" />
           <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
