@@ -26,6 +26,9 @@ public sealed class BackgroundController : IDisposable
     private readonly ShootDropContext _ctx;
     private readonly Action _quit;
     private readonly TrayIcon _tray;
+    // One menu for the app's lifetime: on macOS, Avalonia can't swap in a new NativeMenu on a tray icon
+    // ("The menu being updated does not match"), so Render() replaces the items of this one instead.
+    private readonly NativeMenu _menu = new();
     private IReadOnlyList<DetectedCard> _knownCards = [];
     private bool _firstScan = true;
     private bool _quitting;
@@ -45,7 +48,7 @@ public sealed class BackgroundController : IDisposable
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ShootDrop/Assets/tray.png"))),
             ToolTipText = "ShootDrop",
-            Menu = new NativeMenu(),
+            Menu = _menu,
         };
         TrayIcon.SetIcons(app, new TrayIcons { _tray });
 
@@ -257,7 +260,7 @@ public sealed class BackgroundController : IDisposable
 
     private void Render()
     {
-        var menu = new NativeMenu();
+        var menu = new List<NativeMenuItemBase>();
         var cards = _ctx.Monitor.Cards;
 
         menu.Add(Disabled(cards.Count switch
@@ -334,7 +337,8 @@ public sealed class BackgroundController : IDisposable
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(Item("Quit ShootDrop", Quit));
 
-        _tray.Menu = menu;
+        _menu.Items.Clear();
+        foreach (var item in menu) _menu.Items.Add(item);
     }
 
     private async Task CopyNowAsync()
