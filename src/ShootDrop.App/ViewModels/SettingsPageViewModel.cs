@@ -157,11 +157,101 @@ public sealed partial class SettingsPageViewModel : PageViewModel
         }
     }
 
+    public Shortcut Shortcut => _ctx.Settings.Background.Shortcut;
+    public IReadOnlyList<string> ShortcutKeys => Shortcut.Parts();
+    public string ShortcutLabel => $"{Shortcut} opens Ready to copy from any app";
+    public bool IsDefaultShortcut => Shortcut == Shortcut.Default;
+    public bool CanResetShortcut => !IsDefaultShortcut && !IsRecording;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NotRecording), nameof(CanResetShortcut))]
+    private bool _isRecording;
+
+    public bool NotRecording => !IsRecording;
+
+    [ObservableProperty] private string _recordHint = "";
+    [ObservableProperty] private string _shortcutMessage = "";
+
     public string ShortcutStatus =>
-        !OperatingSystem.IsMacOS() ? "The shortcut is macOS-only for now."
+        !OperatingSystem.IsMacOS() ? "The shortcut works on macOS for now."
         : !ShortcutEnabled ? "Off."
-        : _ctx.Background?.ShortcutActive == true ? "Ready: press ⌃⌥⌘C in any app."
-        : "Another app is using ⌃⌥⌘C, so ShootDrop couldn't take it.";
+        : _ctx.Background?.ShortcutActive == true ? $"Ready: press {Shortcut} in any app."
+        : $"Another app is using {Shortcut}. Choose a different shortcut.";
+
+    [RelayCommand]
+    private void ChangeShortcut()
+    {
+        ShortcutMessage = "";
+        RecordHint = "Press the new shortcut now…  (Esc to cancel)";
+        IsRecording = true;
+        _ctx.Background?.PauseShortcut(true); // so the old shortcut doesn't fire while recording
+    }
+
+    [RelayCommand]
+    private void CancelRecording() => StopRecording();
+
+    [RelayCommand]
+    private void ResetShortcut() => TrySave(Shortcut.Default);
+
+    private void StopRecording()
+    {
+        if (!IsRecording) return;
+        IsRecording = false;
+        _ctx.Background?.PauseShortcut(false);
+        RefreshShortcut();
+    }
+
+    /// <summary>Called by the view for each key press while recording. Returns true if the key was used.</summary>
+    public bool Record(string? key, ShortcutModifiers modifiers, bool escape)
+    {
+        if (!IsRecording) return false;
+        if (escape && modifiers == ShortcutModifiers.None)
+        {
+            StopRecording();
+            return true;
+        }
+        if (key is null) return modifiers != ShortcutModifiers.None; // only ⌃⌥⇧⌘ so far: keep waiting
+        var candidate = new Shortcut(modifiers, key);
+        if (candidate.Problem is { } problem)
+        {
+            RecordHint = $"{candidate}: {problem}";
+            return true;
+        }
+        IsRecording = false;
+        _ctx.Background?.PauseShortcut(false);
+        TrySave(candidate);
+        return true;
+    }
+
+    /// <summary>Saves the shortcut only if macOS accepts it; otherwise keeps the old one.</summary>
+    private void TrySave(Shortcut shortcut)
+    {
+        var bg = _ctx.Settings.Background;
+        var old = bg.Shortcut;
+        bg.Shortcut = shortcut;
+        var ok = _ctx.Background?.ApplyShortcut() ?? true;
+        if (!ok && OperatingSystem.IsMacOS() && bg.ShortcutEnabled)
+        {
+            bg.Shortcut = old;
+            _ctx.Background?.ApplyShortcut();
+            ShortcutMessage = $"{shortcut} is already used by another app or by macOS. Try another one.";
+        }
+        else
+        {
+            _ctx.Save();
+            ShortcutMessage = shortcut == old ? "" : $"Saved. {shortcut} now opens Ready to copy.";
+        }
+        RefreshShortcut();
+    }
+
+    private void RefreshShortcut()
+    {
+        foreach (var name in new[] { nameof(Shortcut), nameof(ShortcutKeys), nameof(ShortcutLabel), nameof(IsDefaultShortcut),
+                     nameof(CanResetShortcut), nameof(ShortcutStatus) })
+            OnPropertyChanged(name);
+    }
+
+    public override void OnHidden() => StopRecording();
 
     public int ArrivalIndex
     {

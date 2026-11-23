@@ -177,17 +177,36 @@ public sealed class BackgroundController : IDisposable
 
     // ---- Keyboard shortcut ⌃⌥⌘C ----------------------------------------------------------------
 
-    public void ApplyShortcut()
+    /// <summary>(Re-)registers the saved shortcut. Returns false if macOS refused it (another app owns it).</summary>
+    public bool ApplyShortcut()
     {
-        if (!OperatingSystem.IsMacOS()) return;
+        if (!OperatingSystem.IsMacOS()) return false;
         _hotKey?.Dispose();
         _hotKey = null;
-        if (!Settings.ShortcutEnabled) return;
-        _hotKey = GlobalHotKey.Register(GlobalHotKey.KeyC, GlobalHotKey.Control | GlobalHotKey.Option | GlobalHotKey.Cmd,
-            () => Dispatcher.UIThread.Post(OnShortcut));
+        if (!Settings.ShortcutEnabled || _shortcutPaused) return true;
+        var shortcut = Settings.Shortcut;
+        if (!shortcut.IsValid || !KeyCodes.TryGet(shortcut.Key, out var code)) return false;
+        _hotKey = GlobalHotKey.Register(code, CarbonModifiers(shortcut.Modifiers), () => Dispatcher.UIThread.Post(OnShortcut));
+        return _hotKey is not null;
     }
 
-    /// <summary>True if the shortcut is registered (false if another app already uses ⌃⌥⌘C).</summary>
+    /// <summary>While the user records a new shortcut, the old one must not fire.</summary>
+    public void PauseShortcut(bool paused)
+    {
+        _shortcutPaused = paused;
+        ApplyShortcut();
+    }
+
+    private bool _shortcutPaused;
+
+    [System.Runtime.Versioning.SupportedOSPlatform("macos")]
+    private static uint CarbonModifiers(ShortcutModifiers m) =>
+        (m.HasFlag(ShortcutModifiers.Control) ? GlobalHotKey.Control : 0)
+        | (m.HasFlag(ShortcutModifiers.Option) ? GlobalHotKey.Option : 0)
+        | (m.HasFlag(ShortcutModifiers.Shift) ? GlobalHotKey.Shift : 0)
+        | (m.HasFlag(ShortcutModifiers.Command) ? GlobalHotKey.Cmd : 0);
+
+    /// <summary>True if the shortcut is registered.</summary>
     public bool ShortcutActive => _hotKey is not null;
 
     private void OnShortcut()

@@ -226,10 +226,44 @@
                          Text="Automatic copies use your last setup and today's date as the project name. They start only when every plugged-in card is a camera ShootDrop knows and there is something to copy; otherwise Ready to copy opens so you can decide. Every file is still verified." />
             </StackPanel>
 
-            <StackPanel Spacing="6">
+            <StackPanel Spacing="8">
               <TextBlock Classes="label" Margin="0" Text="Keyboard shortcut" />
-              <CheckBox IsChecked="{Binding ShortcutEnabled}" Content="⌃⌥⌘C opens Ready to copy from any app" />
+              <CheckBox IsChecked="{Binding ShortcutEnabled}" Content="{Binding ShortcutLabel}" />
+
+              <!-- Current shortcut as key caps, with Change / Reset -->
+              <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding NotRecording}">
+                <ItemsControl ItemsSource="{Binding ShortcutKeys}" VerticalAlignment="Center">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="sys:String">
+                      <Border Background="White" BorderBrush="#C9CBD0" BorderThickness="1,1,1,2" CornerRadius="6"
+                              MinWidth="34" Height="34" Padding="8,0">
+                        <TextBlock Text="{Binding}" FontSize="16" FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Classes="plain" Content="Change…" Command="{Binding ChangeShortcutCommand}" VerticalAlignment="Center" />
+                <Button Classes="link" Content="Reset to ⌃⌥⌘C" Command="{Binding ResetShortcutCommand}"
+                        IsVisible="{Binding CanResetShortcut}" VerticalAlignment="Center" />
+              </StackPanel>
+
+              <!-- Recording: the next key press with ⌃ ⌥ or ⌘ becomes the shortcut -->
+              <Border Classes="selected" IsVisible="{Binding IsRecording}" CornerRadius="10" Padding="16,12"
+                      BorderBrush="#0A64D6" BorderThickness="2" Background="#EEF4FD">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="{Binding RecordHint}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Classes="link" Content="Cancel" Command="{Binding CancelRecordingCommand}" Margin="12,0,0,0" />
+                </Grid>
+              </Border>
+
+              <TextBlock Text="{Binding ShortcutMessage}" Foreground="#1E7F3A" TextWrapping="Wrap" />
               <TextBlock Classes="muted" Text="{Binding ShortcutStatus}" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Use ⌃ Control, ⌥ Option or ⌘ Command with a letter, a number or F1–F12. ShootDrop checks that no other app already uses it." />
             </StackPanel>
           </StackPanel>
         </ScrollViewer>

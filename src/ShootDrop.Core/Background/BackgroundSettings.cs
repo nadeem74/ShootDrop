@@ -22,8 +22,11 @@ public sealed class BackgroundSettings
     /// <summary>Start ShootDrop (hidden, in the menu bar) when the user logs in.</summary>
     public bool StartAtLogin { get; set; }
 
-    /// <summary>The system-wide shortcut ⌃⌥⌘C opens Ready to copy.</summary>
+    /// <summary>The system-wide shortcut opens Ready to copy.</summary>
     public bool ShortcutEnabled { get; set; } = true;
+
+    /// <summary>Which keys; the user can change it in Settings. Default ⌃⌥⌘C.</summary>
+    public Shortcut Shortcut { get; set; } = Shortcut.Default;
 
     public CardArrivalAction WhenCardsPluggedIn { get; set; } = CardArrivalAction.ShowReadyWindow;
 }
