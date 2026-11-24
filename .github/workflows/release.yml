@@ -54,6 +54,9 @@ jobs:
           scripts/macos/package-app.sh out/app out/ShootDrop.app "$VERSION"
           mkdir -p dist
           ditto -c -k --keepParent out/ShootDrop.app "dist/ShootDrop-$VERSION-${{ matrix.rid }}.zip"
+          # Same file under a name without the version, so README links to /releases/latest/download/ never change.
+          if [ "${{ matrix.rid }}" = "osx-arm64" ]; then STABLE=ShootDrop-macOS-Apple-Silicon.zip; else STABLE=ShootDrop-macOS-Intel.zip; fi
+          cp "dist/ShootDrop-$VERSION-${{ matrix.rid }}.zip" "dist/$STABLE"
       - name: Publish CLI
         run: |
           dotnet publish src/ShootDrop.Cli -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o out/cli -p:Version=$VERSION
@@ -89,9 +92,11 @@ jobs:
           mkdir -p dist
           if [ "${{ matrix.rid }}" = "win-x64" ]; then
             (cd out && zip -qr "../dist/ShootDrop-$VERSION-win-x64.zip" ShootDrop)
+            cp "dist/ShootDrop-$VERSION-win-x64.zip" dist/ShootDrop-Windows.zip
             (cd out/cli && zip -q "../../dist/shootdrop-cli-$VERSION-win-x64.zip" shootdrop.exe)
           else
             tar -czf "dist/ShootDrop-$VERSION-linux-x64.tar.gz" -C out ShootDrop
+            cp "dist/ShootDrop-$VERSION-linux-x64.tar.gz" dist/ShootDrop-Linux.tar.gz
             tar -czf "dist/shootdrop-cli-$VERSION-linux-x64.tar.gz" -C out/cli shootdrop
           fi
       - uses: actions/upload-artifact@v5

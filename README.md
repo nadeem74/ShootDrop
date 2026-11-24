@@ -17,6 +17,22 @@
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome"></a>
 </p>
 
+<h3 align="center">Download</h3>
+
+<p align="center">
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.zip"><img src="docs/images/download/mac-apple-silicon.svg" width="252" alt="Download for Mac with Apple Silicon (M1 to M4)"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip"><img src="docs/images/download/mac-intel.svg" width="252" alt="Download for Mac with Intel"></a>
+  <br>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.zip"><img src="docs/images/download/windows.svg" width="252" alt="Download for Windows (64-bit)"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz"><img src="docs/images/download/linux.svg" width="252" alt="Download for Linux (64-bit)"></a>
+</p>
+
+<p align="center"><sub>
+  Which Mac? Apple menu → <b>About This Mac</b>: “Chip: Apple M…” means M-series, “Processor: Intel…” means Intel.<br>
+  Mac first time: unzip, drag ShootDrop to Applications, then right-click it → <b>Open</b> → <b>Open</b> (not notarised by Apple yet).<br>
+  Windows and Linux are new, <a href="#platform-status">testers welcome</a> · <a href="https://github.com/nadeem74/ShootDrop/releases">all versions</a>
+</sub></p>
+
 ---
 
 ## TL;DR
@@ -114,11 +130,15 @@ Want to work on on-device AI in .NET? This is a good place to start. 👀
 
 ### Download
 
-Builds for macOS (Apple Silicon and Intel), Windows and Linux are attached to each
-[GitHub Release](https://github.com/nadeem74/ShootDrop/releases), built by GitHub Actions from this repo.
+| | Download | How to start it |
+| --- | --- | --- |
+| **Mac with M-series chip** (M1, M2, M3, M4) | [ShootDrop-macOS-Apple-Silicon.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.zip) | Unzip, drag `ShootDrop.app` to Applications. First time: right-click → **Open** → **Open** (not notarised by Apple yet). |
+| **Mac with Intel chip** | [ShootDrop-macOS-Intel.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip) | Same as above. |
+| **Windows** (x64) | [ShootDrop-Windows.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.zip) | Unzip, run `ShootDrop.exe`. If SmartScreen warns: **More info** → **Run anyway** (not code-signed yet). |
+| **Linux** (x64) | [ShootDrop-Linux.tar.gz](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz) | `tar -xzf ShootDrop-Linux.tar.gz && ./ShootDrop/ShootDrop` |
 
-**macOS:** unzip, drag `ShootDrop.app` to Applications. The app isn't notarised by Apple yet, so the first time:
-right-click the app → **Open** → **Open**. (Or run `xattr -dr com.apple.quarantine /Applications/ShootDrop.app`.)
+Every [release](https://github.com/nadeem74/ShootDrop/releases) is built by GitHub Actions from this repo, with
+checksums in `SHA256SUMS.txt` and the `shootdrop` command-line tool for each platform.
 
 ### Platform status
 
