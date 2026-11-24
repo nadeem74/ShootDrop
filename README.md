@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Linux%20%7C%20Windows-testers%20wanted-orange" alt="Linux and Windows testers wanted">
   <img src="https://img.shields.io/badge/.NET-10-512BD4" alt=".NET 10">
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome"></a>
-  <a href="https://buymeacoffee.com/ahmednadeeG"><img src="https://img.shields.io/badge/Buy%20me%20a-coffee-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
+  <a href="https://buymeacoffee.com/thelocalguide"><img src="https://img.shields.io/badge/Buy%20me%20a-coffee-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
 </p>
 
 <p align="center">
@@ -271,10 +271,10 @@ with an AI coding agent ([Claude Code](https://claude.com/claude-code)); the rul
 ## Support ShootDrop
 
 ShootDrop is free and will stay free. If it saves you time after a long shoot, you can
-[buy me a coffee ☕](https://buymeacoffee.com/ahmednadeeG). It helps pay for the Apple Developer ID,
+[buy me a coffee ☕](https://buymeacoffee.com/thelocalguide). It helps pay for the Apple Developer ID,
 so the Mac app can open without any warning.
 
-<a href="https://buymeacoffee.com/ahmednadeeG"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
+<a href="https://buymeacoffee.com/thelocalguide"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
 
 ## License
 
