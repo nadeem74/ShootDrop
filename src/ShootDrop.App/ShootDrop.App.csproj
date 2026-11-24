@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <!-- Icon of ShootDrop.exe on Windows -->
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <AssemblyName>ShootDrop</AssemblyName>
     <RootNamespace>ShootDrop.App</RootNamespace>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>

@@ -1,14 +1,16 @@
 name: release
 
-# Push a tag like v0.1.0 and this builds ShootDrop for macOS, Windows and Linux
-# and attaches the downloads to a GitHub Release.
+# Push a tag like v0.2.0 (or create the release on GitHub) and this builds ShootDrop and attaches
+# exactly four downloads to the GitHub Release:
+#   ShootDrop-macOS-Apple-Silicon.dmg, ShootDrop-macOS-Intel.dmg, ShootDrop-Windows.exe, ShootDrop-Linux.tar.gz
+# The names carry no version, so the README's /releases/latest/download/... links always give the newest build.
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to (re)build, e.g. v0.1.0"
+        description: "Existing tag to (re)build, e.g. v0.2.0"
         required: true
 
 permissions:
@@ -35,7 +37,11 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        rid: [osx-arm64, osx-x64]
+        include:
+          - rid: osx-arm64
+            name: ShootDrop-macOS-Apple-Silicon.dmg
+          - rid: osx-x64
+            name: ShootDrop-macOS-Intel.dmg
     steps:
       - uses: actions/checkout@v5
         with:
@@ -47,31 +53,23 @@ jobs:
         run: |
           TAG="${{ inputs.tag || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
-      - name: Publish app
-        run: dotnet publish src/ShootDrop.App -c Release -r ${{ matrix.rid }} --self-contained true -o out/app -p:Version=$VERSION
-      - name: Package .app
+      - name: Build ShootDrop.app
         run: |
-          scripts/macos/package-app.sh out/app out/ShootDrop.app "$VERSION"
+          dotnet publish src/ShootDrop.App -c Release -r ${{ matrix.rid }} --self-contained true -o out/app -p:Version=$VERSION
+          scripts/macos/package-app.sh out/app out/dmg/ShootDrop.app "$VERSION"
+      - name: Make the .dmg (drag to Applications)
+        run: |
+          ln -s /Applications out/dmg/Applications
           mkdir -p dist
-          ditto -c -k --keepParent out/ShootDrop.app "dist/ShootDrop-$VERSION-${{ matrix.rid }}.zip"
-          # Same file under a name without the version, so README links to /releases/latest/download/ never change.
-          if [ "${{ matrix.rid }}" = "osx-arm64" ]; then STABLE=ShootDrop-macOS-Apple-Silicon.zip; else STABLE=ShootDrop-macOS-Intel.zip; fi
-          cp "dist/ShootDrop-$VERSION-${{ matrix.rid }}.zip" "dist/$STABLE"
-      - name: Publish CLI
-        run: |
-          dotnet publish src/ShootDrop.Cli -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o out/cli -p:Version=$VERSION
-          tar -czf "dist/shootdrop-cli-$VERSION-${{ matrix.rid }}.tar.gz" -C out/cli shootdrop
+          hdiutil create -volname "ShootDrop" -srcfolder out/dmg -ov -format UDZO "dist/${{ matrix.name }}"
       - uses: actions/upload-artifact@v5
         with:
           name: dist-${{ matrix.rid }}
           path: dist/*
 
-  linux-windows:
+  windows:
     needs: test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rid: [linux-x64, win-x64]
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
         with:
@@ -79,48 +77,57 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-      - name: Version
+      - name: Build one .exe
+        shell: bash
         run: |
           TAG="${{ inputs.tag || github.ref_name }}"
-          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
-      - name: Publish app and CLI
-        run: |
-          dotnet publish src/ShootDrop.App -c Release -r ${{ matrix.rid }} --self-contained true -o out/ShootDrop -p:Version=$VERSION
-          dotnet publish src/ShootDrop.Cli -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o out/cli -p:Version=$VERSION
-      - name: Archive
-        run: |
-          mkdir -p dist
-          if [ "${{ matrix.rid }}" = "win-x64" ]; then
-            (cd out && zip -qr "../dist/ShootDrop-$VERSION-win-x64.zip" ShootDrop)
-            cp "dist/ShootDrop-$VERSION-win-x64.zip" dist/ShootDrop-Windows.zip
-            (cd out/cli && zip -q "../../dist/shootdrop-cli-$VERSION-win-x64.zip" shootdrop.exe)
-          else
-            tar -czf "dist/ShootDrop-$VERSION-linux-x64.tar.gz" -C out ShootDrop
-            cp "dist/ShootDrop-$VERSION-linux-x64.tar.gz" dist/ShootDrop-Linux.tar.gz
-            tar -czf "dist/shootdrop-cli-$VERSION-linux-x64.tar.gz" -C out/cli shootdrop
-          fi
+          dotnet publish src/ShootDrop.App -c Release -r win-x64 --self-contained true \
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=${TAG#v} -o out
+          mkdir -p dist && cp out/ShootDrop.exe dist/ShootDrop-Windows.exe
       - uses: actions/upload-artifact@v5
         with:
-          name: dist-${{ matrix.rid }}
+          name: dist-win-x64
+          path: dist/*
+
+  linux:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Build
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          dotnet publish src/ShootDrop.App -c Release -r linux-x64 --self-contained true -p:Version=${TAG#v} -o out/ShootDrop
+          mkdir -p dist && tar -czf dist/ShootDrop-Linux.tar.gz -C out ShootDrop
+      - uses: actions/upload-artifact@v5
+        with:
+          name: dist-linux-x64
           path: dist/*
 
   release:
-    needs: [macos, linux-windows]
+    needs: [macos, windows, linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v5
         with:
           path: dist
           merge-multiple: true
-      - name: Checksums
-        run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
-      - name: Create or update the GitHub Release
+      - name: Attach the four downloads (and remove anything else)
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/* --clobber -R "$GITHUB_REPOSITORY"
-          else
-            gh release create "$TAG" dist/* -R "$GITHUB_REPOSITORY" --title "ShootDrop $TAG" --generate-notes --prerelease
+          ls -la dist
+          if ! gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" --title "ShootDrop $TAG" --generate-notes
           fi
+          gh release upload "$TAG" dist/* --clobber -R "$GITHUB_REPOSITORY"
+          keep=" $(cd dist && ls | tr '\n' ' ') "
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | while read -r a; do
+            case "$keep" in *" $a "*) ;; *) gh release delete-asset "$TAG" "$a" -y -R "$GITHUB_REPOSITORY" ;; esac
+          done
