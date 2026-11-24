@@ -20,10 +20,11 @@
 <h3 align="center">Download</h3>
 
 <p align="center">
-  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.zip"><img src="https://img.shields.io/badge/Mac-M1_·_M2_·_M3_·_M4-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac with Apple M-series chip" height="40"></a>
-  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip"><img src="https://img.shields.io/badge/Mac-Intel-555555?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac with Intel chip" height="40"></a>
-  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.zip"><img src="https://img.shields.io/badge/Windows-x64-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" height="40"></a>
-  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz"><img src="https://img.shields.io/badge/Linux-x64-E95420?style=for-the-badge&logo=linux&logoColor=white" alt="Download for Linux" height="40"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.zip"><img src="docs/images/download/mac-apple-silicon.svg" width="252" alt="Download for Mac with Apple Silicon (M1 to M4)"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip"><img src="docs/images/download/mac-intel.svg" width="252" alt="Download for Mac with Intel"></a>
+  <br>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.zip"><img src="docs/images/download/windows.svg" width="252" alt="Download for Windows (64-bit)"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz"><img src="docs/images/download/linux.svg" width="252" alt="Download for Linux (64-bit)"></a>
 </p>
 
 <p align="center"><sub>
