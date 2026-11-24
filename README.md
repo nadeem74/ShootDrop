@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <sub>Mac with <a href="#mac-with-homebrew">Homebrew</a>? <code>brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop && brew install --cask shootdrop</code></sub>
+  <sub>Mac with <a href="#mac-with-homebrew">Homebrew</a>? Install with three commands, no security warning. <a href="#mac-with-homebrew">See how</a>.</sub>
 </p>
 
 ---
@@ -139,10 +139,20 @@ Not sure which Mac you have? Apple menu → **About This Mac**: "Apple M…" is 
 
 If you use [Homebrew](https://brew.sh), this is the easiest way. It picks the right build for your chip and opens with no warning:
 
+Open **Terminal** and paste:
+
 ```bash
 brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop
+brew trust nadeem74/shootdrop
 brew install --cask shootdrop
 ```
+
+What each line does:
+1. `brew tap` tells Homebrew where ShootDrop lives (this GitHub repo).
+2. `brew trust` is your one-time OK for Homebrew to install from a source outside its own list.
+3. `brew install` downloads the latest release for your Mac's chip and puts ShootDrop in Applications.
+
+You only need lines 1 and 2 once per Mac.
 
 Update with `brew upgrade --cask --greedy shootdrop`. Remove with `brew uninstall --cask shootdrop`
 (add `--zap` to also delete your settings).

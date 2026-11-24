@@ -1,6 +1,7 @@
 # Homebrew cask for ShootDrop.
 #
 #   brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop
+#   brew trust nadeem74/shootdrop
 #   brew install --cask shootdrop
 #
 # Always installs the latest GitHub Release for this Mac's chip.
