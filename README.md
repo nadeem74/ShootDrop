@@ -20,21 +20,16 @@
 <h3 align="center">Download</h3>
 
 <p align="center">
-  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS.zip"><img src="https://img.shields.io/badge/Download_for-macOS-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS" height="44"></a>
-  &nbsp;
-  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.zip"><img src="https://img.shields.io/badge/Download_for-Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" height="44"></a>
-  &nbsp;
-  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz"><img src="https://img.shields.io/badge/Download_for-Linux-E95420?style=for-the-badge&logo=linux&logoColor=white" alt="Download for Linux" height="44"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.zip"><img src="https://img.shields.io/badge/Mac-M1_·_M2_·_M3_·_M4-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac with Apple M-series chip" height="40"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip"><img src="https://img.shields.io/badge/Mac-Intel-555555?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac with Intel chip" height="40"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.zip"><img src="https://img.shields.io/badge/Windows-x64-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" height="40"></a>
+  <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz"><img src="https://img.shields.io/badge/Linux-x64-E95420?style=for-the-badge&logo=linux&logoColor=white" alt="Download for Linux" height="40"></a>
 </p>
 
 <p align="center"><sub>
-  Free and open source · Mac with Apple Silicon (<a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip">Intel Mac here</a>) ·
-  Windows and Linux are new, <a href="#platform-status">testers welcome</a> ·
-  <a href="https://github.com/nadeem74/ShootDrop/releases">all versions</a>
-</sub></p>
-
-<p align="center"><sub>
-  <b>Mac:</b> unzip, drag ShootDrop to Applications, then the first time right-click it → <b>Open</b> → <b>Open</b> (it isn't notarised by Apple yet).
+  Which Mac? Apple menu  → <b>About This Mac</b>: “Chip: Apple M…” means M-series, “Processor: Intel…” means Intel.<br>
+  Mac first time: unzip, drag ShootDrop to Applications, then right-click it → <b>Open</b> → <b>Open</b> (not notarised by Apple yet).<br>
+  Windows and Linux are new, <a href="#platform-status">testers welcome</a> · <a href="https://github.com/nadeem74/ShootDrop/releases">all versions</a>
 </sub></p>
 
 ---
@@ -136,8 +131,8 @@ Want to work on on-device AI in .NET? This is a good place to start. 👀
 
 | | Download | How to start it |
 | --- | --- | --- |
-| **macOS** (Apple Silicon) | [ShootDrop-macOS.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS.zip) | Unzip, drag `ShootDrop.app` to Applications. First time: right-click → **Open** → **Open** (not notarised by Apple yet). |
-| **macOS** (Intel) | [ShootDrop-macOS-Intel.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip) | Same as above. |
+| **Mac with M-series chip** (M1, M2, M3, M4) | [ShootDrop-macOS-Apple-Silicon.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.zip) | Unzip, drag `ShootDrop.app` to Applications. First time: right-click → **Open** → **Open** (not notarised by Apple yet). |
+| **Mac with Intel chip** | [ShootDrop-macOS-Intel.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.zip) | Same as above. |
 | **Windows** (x64) | [ShootDrop-Windows.zip](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.zip) | Unzip, run `ShootDrop.exe`. If SmartScreen warns: **More info** → **Run anyway** (not code-signed yet). |
 | **Linux** (x64) | [ShootDrop-Linux.tar.gz](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz) | `tar -xzf ShootDrop-Linux.tar.gz && ./ShootDrop/ShootDrop` |
 

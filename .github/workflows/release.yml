@@ -55,7 +55,7 @@ jobs:
           mkdir -p dist
           ditto -c -k --keepParent out/ShootDrop.app "dist/ShootDrop-$VERSION-${{ matrix.rid }}.zip"
           # Same file under a name without the version, so README links to /releases/latest/download/ never change.
-          if [ "${{ matrix.rid }}" = "osx-arm64" ]; then STABLE=ShootDrop-macOS.zip; else STABLE=ShootDrop-macOS-Intel.zip; fi
+          if [ "${{ matrix.rid }}" = "osx-arm64" ]; then STABLE=ShootDrop-macOS-Apple-Silicon.zip; else STABLE=ShootDrop-macOS-Intel.zip; fi
           cp "dist/ShootDrop-$VERSION-${{ matrix.rid }}.zip" "dist/$STABLE"
       - name: Publish CLI
         run: |
