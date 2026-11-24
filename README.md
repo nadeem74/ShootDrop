@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/Linux%20%7C%20Windows-testers%20wanted-orange" alt="Linux and Windows testers wanted">
   <img src="https://img.shields.io/badge/.NET-10-512BD4" alt=".NET 10">
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome"></a>
+  <a href="https://buymeacoffee.com/ahmednadeeG"><img src="https://img.shields.io/badge/Buy%20me%20a-coffee-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
 </p>
 
 <p align="center">
@@ -22,6 +23,10 @@
   <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.dmg"><img src="docs/images/download/mac-intel.svg" width="220" alt="Download for Mac with Intel"></a>
   <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.exe"><img src="docs/images/download/windows.svg" width="220" alt="Download for Windows"></a>
   <a href="https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz"><img src="docs/images/download/linux.svg" width="220" alt="Download for Linux"></a>
+</p>
+
+<p align="center">
+  <sub>Mac with <a href="#mac-with-homebrew">Homebrew</a>? <code>brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop && brew install --cask shootdrop</code></sub>
 </p>
 
 ---
@@ -123,12 +128,36 @@ Want to work on on-device AI in .NET? This is a good place to start. 👀
 
 | | File | First time |
 | --- | --- | --- |
-| Mac (Apple Silicon, M1–M4) | [ShootDrop-macOS-Apple-Silicon.dmg](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.dmg) | Open the .dmg, drag ShootDrop to Applications, then right-click it → **Open** (not notarised yet) |
+| Mac (Apple Silicon, M1–M4) | [ShootDrop-macOS-Apple-Silicon.dmg](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.dmg) | Open the .dmg, drag ShootDrop to Applications. See [first launch on a Mac](#first-launch-on-a-mac) |
 | Mac (Intel) | [ShootDrop-macOS-Intel.dmg](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.dmg) | Same |
 | Windows | [ShootDrop-Windows.exe](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.exe) | Double-click. If Windows warns: **More info** → **Run anyway** |
 | Linux | [ShootDrop-Linux.tar.gz](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz) | `tar -xzf ShootDrop-Linux.tar.gz && ./ShootDrop/ShootDrop` |
 
 Not sure which Mac you have? Apple menu → **About This Mac**: "Apple M…" is Apple Silicon.
+
+### Mac with Homebrew
+
+If you use [Homebrew](https://brew.sh), this is the easiest way. It picks the right build for your chip and opens with no warning:
+
+```bash
+brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop
+brew install --cask shootdrop
+```
+
+Update with `brew upgrade --cask --greedy shootdrop`. Remove with `brew uninstall --cask shootdrop`
+(add `--zap` to also delete your settings).
+
+### First launch on a Mac
+
+ShootDrop isn't notarised by Apple yet (that needs a paid Apple Developer ID; it's on the [roadmap](docs/ROADMAP.md)).
+So the first time you open the .dmg version, macOS says it **could not verify** ShootDrop. To allow it, once:
+
+1. Click **Done** on the warning.
+2. Open **System Settings → Privacy & Security**, scroll down to **Security**.
+3. Next to *"ShootDrop" was blocked*, click **Open Anyway**, then **Open**, and enter your Mac password.
+
+After that it opens normally. (Right-click → Open no longer works since macOS 15 Sequoia.)
+The Homebrew install above skips this step.
 
 ### Platform status
 
@@ -238,6 +267,14 @@ He designed the screens and the architecture, wrote the specs and ADRs, and revi
 with an AI coding agent ([Claude Code](https://claude.com/claude-code)); the rules it follows are in [CLAUDE.md](CLAUDE.md).
 
 [LinkedIn](https://www.linkedin.com/in/nadeem12) · [GitHub](https://github.com/nadeem74)
+
+## Support ShootDrop
+
+ShootDrop is free and will stay free. If it saves you time after a long shoot, you can
+[buy me a coffee ☕](https://buymeacoffee.com/ahmednadeeG). It helps pay for the Apple Developer ID,
+so the Mac app can open without any warning.
+
+<a href="https://buymeacoffee.com/ahmednadeeG"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
 
 ## License
 
