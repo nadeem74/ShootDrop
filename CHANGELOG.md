@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Homebrew cask: `brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop && brew install --cask shootdrop`.
+- Buy Me a Coffee link (README and GitHub's Sponsor button).
+- README: correct Mac first-launch steps. Since macOS 15, right-click → Open no longer works; use Privacy & Security → Open Anyway.
+
 ## 0.2.0 (2026-11-23)
 
 - Runs from the menu bar: cards plugged in, Copy now with your last setup, setups, Settings, Quit

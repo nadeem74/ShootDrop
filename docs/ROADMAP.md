@@ -21,7 +21,7 @@ Still to do:
 
 
 - **Local AI smart box**: a small offline model for sentences the rules don't cover ([AI.md](AI.md)) — *help wanted*
-- Signed and notarised macOS build, Homebrew cask
+- Signed and notarised macOS build (Homebrew cask: done in v0.2, via this repo as a tap)
 - Linux and Windows: fix what testers find, then mark them supported — *help wanted*
 - More camera profiles: Sony, Canon, GoPro, Insta360, Zoom, Rode — *help wanted*
 
