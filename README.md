@@ -27,7 +27,7 @@
 </p>
 
 <p align="center"><sub>
-  Which Mac? Apple menu  → <b>About This Mac</b>: “Chip: Apple M…” means M-series, “Processor: Intel…” means Intel.<br>
+  Which Mac? Apple menu → <b>About This Mac</b>: “Chip: Apple M…” means M-series, “Processor: Intel…” means Intel.<br>
   Mac first time: unzip, drag ShootDrop to Applications, then right-click it → <b>Open</b> → <b>Open</b> (not notarised by Apple yet).<br>
   Windows and Linux are new, <a href="#platform-status">testers welcome</a> · <a href="https://github.com/nadeem74/ShootDrop/releases">all versions</a>
 </sub></p>
