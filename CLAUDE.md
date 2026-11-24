@@ -59,5 +59,5 @@ See `docs/ROADMAP.md`. Next: global shortcut + start at login (`ShootDrop.Platfo
 
 ## Releasing
 
-Update `CHANGELOG.md`, then push a tag `vX.Y.Z`. `.github/workflows/release.yml` builds macOS (arm64, x64),
-Windows x64 and Linux x64 and attaches them to a GitHub Release.
+Update `CHANGELOG.md`, then push a tag `vX.Y.Z`. `.github/workflows/release.yml` builds four downloads (macOS Apple Silicon and Intel .dmg,
+Windows .exe, Linux .tar.gz) and attaches only those to the GitHub Release.
