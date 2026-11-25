@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Windows code signing set up through SignPath Foundation (free for open source). Signing switches on once the project is approved; see CODE_SIGNING_POLICY.md.
 - Homebrew cask: `brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop`, `brew trust nadeem74/shootdrop`, `brew install --cask shootdrop`. Tested on a Mac mini (Apple Silicon, Homebrew 7).
 - Buy Me a Coffee link (README and GitHub's Sponsor button).
 - README: correct Mac first-launch steps. Since macOS 15, right-click → Open no longer works; use Privacy & Security → Open Anyway.
