@@ -70,6 +70,10 @@ jobs:
   windows:
     needs: test
     runs-on: windows-latest
+    env:
+      # Free code signing for open source by SignPath Foundation (see CODE_SIGNING_POLICY.md).
+      # Until the SIGNPATH_API_TOKEN secret exists, the .exe is released unsigned, exactly as before.
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -84,6 +88,31 @@ jobs:
           dotnet publish src/ShootDrop.App -c Release -r win-x64 --self-contained true \
             -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:Version=${TAG#v} -o out
           mkdir -p dist && cp out/ShootDrop.exe dist/ShootDrop-Windows.exe
+      - name: Upload the unsigned .exe for signing
+        if: env.SIGNPATH_API_TOKEN != ''
+        id: unsigned
+        uses: actions/upload-artifact@v5
+        with:
+          name: unsigned-win-x64
+          path: dist/ShootDrop-Windows.exe
+      - name: Sign with SignPath (Nadeem approves each release in SignPath)
+        if: env.SIGNPATH_API_TOKEN != ''
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'ShootDrop' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG || 'release-signing' }}
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed
+      - name: Use the signed .exe
+        if: env.SIGNPATH_API_TOKEN != ''
+        shell: bash
+        run: |
+          ls -la signed
+          cp signed/ShootDrop-Windows.exe dist/ShootDrop-Windows.exe
       - uses: actions/upload-artifact@v5
         with:
           name: dist-win-x64

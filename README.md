@@ -26,7 +26,8 @@
 </p>
 
 <p align="center">
-  <sub>Mac with <a href="#mac-with-homebrew">Homebrew</a>? Install with three commands, no security warning. <a href="#mac-with-homebrew">See how</a>.</sub>
+  <sub>Mac with <a href="#mac-with-homebrew">Homebrew</a>? Install with three commands, no security warning. <a href="#mac-with-homebrew">See how</a>.</sub><br>
+  <sub><a href="CODE_SIGNING_POLICY.md">Code signing policy</a> · Free code signing provided by SignPath.io, certificate by SignPath Foundation.</sub>
 </p>
 
 ---
@@ -130,10 +131,17 @@ Want to work on on-device AI in .NET? This is a good place to start. 👀
 | --- | --- | --- |
 | Mac (Apple Silicon, M1–M4) | [ShootDrop-macOS-Apple-Silicon.dmg](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Apple-Silicon.dmg) | Open the .dmg, drag ShootDrop to Applications. See [first launch on a Mac](#first-launch-on-a-mac) |
 | Mac (Intel) | [ShootDrop-macOS-Intel.dmg](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-macOS-Intel.dmg) | Same |
-| Windows | [ShootDrop-Windows.exe](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.exe) | Double-click. If Windows warns: **More info** → **Run anyway** |
+| Windows | [ShootDrop-Windows.exe](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Windows.exe) | Double-click. No installer needed. If Windows warns: **More info** → **Run anyway** (signing is on its way, see the [code signing policy](CODE_SIGNING_POLICY.md)) |
 | Linux | [ShootDrop-Linux.tar.gz](https://github.com/nadeem74/ShootDrop/releases/latest/download/ShootDrop-Linux.tar.gz) | `tar -xzf ShootDrop-Linux.tar.gz && ./ShootDrop/ShootDrop` |
 
 Not sure which Mac you have? Apple menu → **About This Mac**: "Apple M…" is Apple Silicon.
+
+### Code signing policy
+
+Windows releases are being set up for free code signing: free code signing provided by SignPath.io,
+certificate by SignPath Foundation. Who builds, reviews and approves signed releases, and what ShootDrop does
+(and doesn't do) with your data, is in the [code signing policy](CODE_SIGNING_POLICY.md).
+Short version: ShootDrop sends nothing over the internet unless you ask it to.
 
 ### Mac with Homebrew
 
