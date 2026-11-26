@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShootDrop.App.Services;
 using ShootDrop.Core.Copying;
 using ShootDrop.Core.Media;
 
