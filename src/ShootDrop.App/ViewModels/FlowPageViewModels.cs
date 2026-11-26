@@ -238,7 +238,7 @@ public sealed partial class CopyingPageViewModel : PageViewModel
         var progress = new Progress<CopyProgress>(Update);
         try
         {
-            var result = await _ctx.Service.RunAsync(_preview, _ctx.Settings, progress, _cts.Token);
+            var result = await _ctx.Service.RunAsync(_preview, _ctx.Settings, progress, _cts.Token, _ctx.Journal);
             _clock.Stop();
             _ctx.Save(); // remembers "last used"
             if (_ctx.Settings.OpenFinderWhenDone) _ctx.Platform.OpenFolder(plan.IsSplit ? _ctx.Settings.ProjectsRoot : plan.ProjectRoot);
@@ -354,10 +354,10 @@ public sealed partial class DonePageViewModel : PageViewModel
     }
 
     public static DonePageViewModel Cancelled(ShootDropContext ctx, CopyPreview p) =>
-        new(ctx, p, "Copy cancelled", "Finished files are kept in the project. Run the same copy again to copy the rest; finished files are skipped.");
+        new(ctx, p, "Copy cancelled", "Finished files are kept in the project. Press Resume at the top to copy the rest, now or later.");
 
     public static DonePageViewModel Error(ShootDropContext ctx, CopyPreview p, string message) =>
-        new(ctx, p, "Copy stopped", message);
+        new(ctx, p, "Copy stopped", message + " Finished files are kept. Press Resume at the top when you're ready.");
 
     public bool Success { get; }
     public bool NotSuccess => !Success;

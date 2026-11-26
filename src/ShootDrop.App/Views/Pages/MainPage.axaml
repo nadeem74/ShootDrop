@@ -234,6 +234,14 @@
                         Content="Copy each group into its own project" VerticalAlignment="Top" />
             </Grid>
 
+            <!-- How long a pause must be to start a new group -->
+            <Grid ColumnDefinitions="Auto,260,Auto" IsVisible="{Binding HasTimelineClips}">
+              <TextBlock Classes="muted" FontSize="13" Text="New group after a pause of" VerticalAlignment="Center" Margin="0,0,10,0" />
+              <Slider Grid.Column="1" Minimum="15" Maximum="240" TickFrequency="15" IsSnapToTickEnabled="True"
+                      Value="{Binding BreakMinutes}" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="2" Text="{Binding BreakText}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0" />
+            </Grid>
+
             <!-- The bar: one coloured block per group, placed by time -->
             <StackPanel Spacing="4" IsVisible="{Binding HasTimeline}" HorizontalAlignment="Left">
               <Border Width="{x:Static vm:MainPageViewModel.TimelineWidth}" Height="22" CornerRadius="11" Background="#ECEDF0" ClipToBounds="True">

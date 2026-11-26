@@ -102,7 +102,7 @@ public static class SessionSplitter
         var prev = times[0];
         foreach (var t in times.Skip(1))
         {
-            if (t - prev > gap)
+            if (t - prev >= gap)
             {
                 windows.Add(Window(start, prev));
                 start = t;

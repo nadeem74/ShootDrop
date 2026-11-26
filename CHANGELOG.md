@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Resume: if a copy is cut short (card pulled out, power cut, app closed), ShootDrop shows "A copy didn't finish" with
+  **Resume** the next time. Resume copies only what's left, to the same places, removes half-written files first, and
+  the reports list every file of the whole copy. Files whose card isn't plugged in wait until it is.
+- Timeline: a slider sets how long a pause starts a new group (15 min to 4 h, remembered). A pause of exactly that
+  length now counts.
 - Timeline: the chosen day's clips appear as coloured groups, split wherever recording paused for an hour or more.
   Tick "Copy each group into its own project", name each group, merge two groups, or start a new group at any clip.
   No times to type.

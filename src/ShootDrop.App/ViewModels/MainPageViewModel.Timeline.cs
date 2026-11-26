@@ -88,15 +88,48 @@ public sealed partial class MainPageViewModel
     public ObservableCollection<TimelineSession> Sessions { get; } = [];
     [ObservableProperty] private bool _timelineOn;
     [ObservableProperty] private bool _hasTimeline;
+    [ObservableProperty] private bool _hasTimelineClips;
     [ObservableProperty] private string _timelineNote = "";
     [ObservableProperty] private string _timelineStart = "";
     [ObservableProperty] private string _timelineEnd = "";
 
-    /// <summary>Called after each scan with the selected cards' clips. Keeps the user's grouping while the clips are the same.</summary>
-    private bool UpdateTimeline(IEnumerable<CardFiles> selectedCards)
+    private IReadOnlyList<CardFiles> _timelineCards = [];
+
+    /// <summary>The slider: a pause at least this long starts a new group (15 min to 4 h, in 15-minute steps).</summary>
+    public double BreakMinutes
     {
-        var sessions = ClipTimeline.Build(selectedCards);
-        var signature = ClipTimeline.Signature(sessions);
+        get => _ctx.Settings.TimelineBreak.TotalMinutes;
+        set
+        {
+            var minutes = (int)Math.Clamp(Math.Round(value / 15) * 15, 15, 240);
+            if (minutes == _ctx.Settings.TimelineBreakMinutes) return;
+            _ctx.Settings.TimelineBreakMinutes = minutes;
+            _ctx.Save();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(BreakText));
+            _sessionSignature = ""; // regroup with the new break
+            UpdateTimeline(_timelineCards);
+            Recompute();
+        }
+    }
+
+    public string BreakText
+    {
+        get
+        {
+            var t = _ctx.Settings.TimelineBreak;
+            return t.TotalMinutes < 60 ? $"{t.TotalMinutes:0} min"
+                : t.Minutes == 0 ? $"{t.Hours} h"
+                : $"{t.Hours} h {t.Minutes} min";
+        }
+    }
+
+    /// <summary>Called after each scan with the selected cards' clips. Keeps the user's grouping while the clips are the same.</summary>
+    private bool UpdateTimeline(IReadOnlyList<CardFiles> selectedCards)
+    {
+        _timelineCards = selectedCards;
+        var sessions = ClipTimeline.Build(selectedCards, _ctx.Settings.TimelineBreak);
+        var signature = _ctx.Settings.TimelineBreakMinutes + "|" + ClipTimeline.Signature(sessions);
         if (signature == _sessionSignature) return false;
 
         _sessionSignature = signature;
@@ -110,12 +143,13 @@ public sealed partial class MainPageViewModel
         _sessions = sessions;
         Sessions.Clear();
         HasTimeline = sessions.Count > 0;
+        HasTimelineClips = sessions.Count > 0;
         TimelineNote = sessions.Count switch
         {
             0 when !IsSingleDayChoice() => "Pick one day to see its timeline.",
             0 => "No clips on this day with these choices.",
-            1 => "One session: everything was recorded without a long break.",
-            var n => $"{n} sessions, split wherever recording paused for an hour or more.",
+            1 => $"One group: no pause of {BreakText} or more. Move the slider left to split shorter pauses.",
+            var n => $"{n} groups, split wherever recording paused for {BreakText} or more.",
         };
         if (sessions.Count == 0)
         {

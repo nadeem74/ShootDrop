@@ -26,6 +26,9 @@ public sealed record CopyRequest(
 
 public sealed record CopyPreview(CopyRequest Request, IReadOnlyList<CardFiles> Cards, CopyPlan Plan);
 
+/// <summary>The rest of an unfinished copy. <see cref="MissingCards"/> must be plugged in to copy every file.</summary>
+public sealed record ResumePreview(CopyPreview Preview, int AlreadyDone, int MissingSources, IReadOnlyList<string> MissingCards);
+
 /// <param name="ReportPath">The report of the first project; <see cref="ReportPaths"/> has one per project.</param>
 public sealed record CopyRunResult(CopyPlan Plan, IReadOnlyList<CopyFileResult> Files, string ReportPath, IReadOnlyList<string>? ReportPaths = null)
 {
@@ -145,7 +148,8 @@ public sealed class ShootDropService
         CopyPreview preview,
         AppSettings settings,
         IProgress<CopyProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        CopyJournal? journal = null)
     {
         if (!preview.Plan.CanRun)
         {
@@ -155,22 +159,76 @@ public sealed class ShootDropService
             throw new InvalidOperationException(why);
         }
 
+        // With a journal, a copy cut short can be resumed. When this preview is the rest of an unfinished copy
+        // (PrepareResume), the journal is kept and the files finished earlier count towards the result and reports.
+        var previous = journal?.Load();
+        var resuming = previous is not null && preview.Plan.Items.All(i => previous.Header.Items.Any(h => h.Destination == i.Destination));
+        var earlier = resuming ? previous!.DoneResults : [];
+        var now = _clock.GetLocalNow().DateTime;
+        if (journal is not null && !resuming) journal.Begin(preview, now);
+
         var parts = preview.Plan.AllParts.Where(p => p.Items.Count > 0).ToList();
         foreach (var part in parts)
             ProjectCreator.Create(part.ProjectRoot, settings.Template, settings.TemplateDirectory);
-        var results = await new CopyEngine().RunAsync(preview.Plan, progress, cancellationToken).ConfigureAwait(false);
+        var results = await new CopyEngine()
+            .RunAsync(preview.Plan, progress, cancellationToken, journal is null ? null : journal.Record)
+            .ConfigureAwait(false);
 
-        // One report per project, listing only that project's files.
-        var now = _clock.GetLocalNow().DateTime;
+        // One report per project, listing only that project's files (including any finished before a resume).
+        var all = earlier.Concat(results).ToList();
+        var roots = resuming ? previous!.Header.Parts.Select(p => p.ProjectRoot).ToList() : parts.Select(p => p.ProjectRoot).ToList();
         var reports = new List<string>();
-        foreach (var part in parts)
+        foreach (var root in roots)
         {
-            var mine = new HashSet<CopyItem>(part.Items, ReferenceEqualityComparer.Instance);
-            reports.Add(CopyReport.Write(part.ProjectRoot, results.Where(r => mine.Contains(r.Item)).ToList(), now));
+            var mine = all.Where(r => IsUnder(r.Item.Destination, root)).ToList();
+            if (mine.Count > 0) reports.Add(CopyReport.Write(root, mine, now));
         }
 
-        settings.LastUsed = preview.Request.ToSetup("Last used");
-        return new CopyRunResult(preview.Plan, results, reports[0], reports);
+        // Done when every file of the whole copy is in its project; otherwise the journal stays for a resume.
+        if (journal is not null && results.All(r => r.Outcome != CopyOutcome.Failed) && journal.Load() is { } after && after.Remaining.Count == 0)
+            journal.Discard();
+
+        if (!resuming) settings.LastUsed = preview.Request.ToSetup("Last used");
+        return new CopyRunResult(preview.Plan, all, reports[0], reports);
+    }
+
+    private static bool IsUnder(string path, string root) =>
+        path.StartsWith(Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+
+    /// <summary>
+    /// The rest of an unfinished copy, ready to run: the files not yet in their project, going to the same places
+    /// as before. Files whose card isn't plugged in are left out and counted in <see cref="ResumePreview.MissingSources"/>.
+    /// </summary>
+    public ResumePreview PrepareResume(UnfinishedCopy unfinished, AppSettings settings)
+    {
+        var header = unfinished.Header;
+        var remaining = unfinished.Remaining;
+        var available = remaining.Where(i => File.Exists(i.Source)).ToList();
+        var missing = remaining.Count - available.Count;
+
+        var request = CopyRequest.FromSetup(header.Setup, header.ProjectName) with { Splits = header.Splits };
+        var detected = DetectCards(settings);
+        var cards = available.GroupBy(i => i.CardName)
+            .Select(g => (Card: detected.FirstOrDefault(c => c.Name == g.Key), Files: g.Select(i => i.ToItem().Source).ToList()))
+            .Where(c => c.Card is not null)
+            .Select(c => new CardFiles(c.Card!, c.Files))
+            .ToList();
+
+        CopyPlan plan;
+        if (header.Parts.Count > 1)
+        {
+            var parts = header.Parts
+                .Select(p => (p.Window ?? TimeWindow.AllDay,
+                              new CopyPlan(p.ProjectRoot, available.Where(i => i.ProjectRoot == p.ProjectRoot).Select(i => i.ToItem()).ToList(), [])))
+                .ToList();
+            plan = CopyPlan.Combine(parts, []);
+        }
+        else
+        {
+            plan = new CopyPlan(header.Parts[0].ProjectRoot, available.Select(i => i.ToItem()).ToList(), []);
+        }
+        return new ResumePreview(new CopyPreview(request, cards, plan), unfinished.DoneCount, missing,
+            remaining.Where(i => !File.Exists(i.Source)).Select(i => i.CardName).Distinct().ToList());
     }
 
     public static string SanitizeProjectName(string name)

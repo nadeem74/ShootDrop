@@ -22,6 +22,10 @@ public sealed class ShootDropContext
 
     public ShootDropService Service { get; }
     public SettingsStore Store { get; }
+
+    /// <summary>Remembers the copy in progress so it can be resumed after a pulled card or a power cut.</summary>
+    public CopyJournal Journal => _journal ??= CopyJournal.InDirectory(System.IO.Path.GetDirectoryName(Store.Path)!);
+    private CopyJournal? _journal;
     public AppSettings Settings { get; }
     public IPlatform Platform { get; }
     public CardMonitor Monitor { get; }
@@ -143,6 +147,80 @@ public sealed partial class ShellViewModel : ObservableObject
         Current?.OnHidden();
         Current = page;
         page.OnShown();
+        RefreshUnfinished();
+    }
+
+    // ---- Resume an unfinished copy ----------------------------------------------------------------
+    // A copy cut short (card pulled out, power cut, app closed) is offered again until it is resumed or dismissed.
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUnfinished))]
+    private string? _unfinishedText;
+
+    public bool HasUnfinished => !string.IsNullOrEmpty(UnfinishedText);
+
+    public void RefreshUnfinished()
+    {
+        if (Current is CopyingPageViewModel or WelcomePageViewModel)
+        {
+            UnfinishedText = null;
+            return;
+        }
+        var unfinished = _ctx.Journal.Load();
+        if (unfinished is null)
+        {
+            UnfinishedText = null;
+            return;
+        }
+        var names = string.Join(", ", unfinished.ProjectNames.Select(n => $"“{n}”"));
+        UnfinishedText = $"A copy into {names} didn't finish ({unfinished.Started:d MMM, h:mm tt}): "
+                         + $"{unfinished.DoneCount} of {unfinished.Total} files are safely copied.";
+    }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private async Task ResumeCopyAsync()
+    {
+        var unfinished = _ctx.Journal.Load();
+        if (unfinished is null)
+        {
+            RefreshUnfinished();
+            return;
+        }
+        ResumePreview resume;
+        try
+        {
+            resume = await Task.Run(() => _ctx.Service.PrepareResume(unfinished, _ctx.Settings));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            ShowToast("Couldn't read the cards: " + e.Message);
+            return;
+        }
+        if (resume.Preview.Plan.Items.Count == 0)
+        {
+            if (resume.MissingSources > 0)
+            {
+                ShowToast($"Plug in {string.Join(", ", resume.MissingCards)} to copy the remaining {resume.MissingSources} files.");
+            }
+            else
+            {
+                _ctx.Journal.Discard();
+                RefreshUnfinished();
+                ShowToast("Everything was already copied.");
+            }
+            return;
+        }
+        GoCopying(resume.Preview);
+        if (resume.MissingSources > 0)
+            ShowToast($"{resume.MissingSources} files wait for {string.Join(", ", resume.MissingCards)}. Resume again after plugging it in.");
+    }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private void DismissUnfinished()
+    {
+        _ctx.Journal.Discard();
+        RefreshUnfinished();
+        ShowToast("Forgotten. Files already copied stay in the project.");
     }
 
     public void GoWelcome() => Show(new WelcomePageViewModel(_ctx));

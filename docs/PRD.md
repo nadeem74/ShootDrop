@@ -40,7 +40,7 @@ from every card into a project folder you define, checks every byte, understands
 | FR-05 | File types: video, audio, photo, proxy, plus custom extensions | ✅ |
 | FR-06 | Project created from a template folder; each profile routes to a subfolder | ✅ |
 | FR-07 | Unknown card: choose its folder, remembered per card | ✅ |
-| FR-08 | Progress, cancel, resume | ✅ (resume = run again) |
+| FR-08 | Progress, cancel, resume | ✅ v0.3: a copy cut short (card pulled, power cut, app closed) is offered as "Resume" next time (ADR-007) |
 | FR-09 | Verify every file by xxHash64 | ✅ |
 | FR-10 | Never overwrite | ✅ |
 | FR-11 | Cards opened read-only | ✅ |
@@ -57,7 +57,7 @@ from every card into a project folder you define, checks every byte, understands
 | FR-22 | Compact "Ready to copy" landing window | ✅ |
 | FR-23 | Global keyboard shortcut | ✅ v0.2, customisable (macOS) |
 | FR-24 | Start at login, run in the background | ✅ v0.2 (macOS) |
-| FR-25 | Split one day into several projects by recording time ("till 1 pm into A, till 6 pm into B"), from the smart box or the timeline (groups by breaks in recording; name, merge, split at a clip); clips outside every time are shown, not copied | ✅ v0.3 |
+| FR-25 | Split one day into several projects by recording time ("till 1 pm into A, till 6 pm into B"), from the smart box or the timeline (groups by breaks in recording, break length on a slider; name, merge, split at a clip); clips outside every time are shown, not copied | ✅ v0.3 |
 
 ## Non-functional requirements
 

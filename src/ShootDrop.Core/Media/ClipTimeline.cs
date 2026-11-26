@@ -22,7 +22,7 @@ public sealed record ClipSession(IReadOnlyList<TimelineClip> Clips)
 }
 
 /// <summary>
-/// The day's clips grouped into sessions wherever recording paused for a while, so the user can see
+/// The day's clips grouped into sessions wherever recording paused for at least the chosen break (default 1 hour), so the user can see
 /// "9 am – 1 pm, 2:30 – 5:45 pm, 8 – 11 pm" and give each group its own project. The user can merge
 /// two groups or start a new group at any clip. Only for a single day: a time of day can't tell days apart.
 /// </summary>
@@ -40,7 +40,7 @@ public static class ClipTimeline
         var current = new List<TimelineClip> { clips[0] };
         foreach (var clip in clips.Skip(1))
         {
-            if (clip.Time - current[^1].Time > gap)
+            if (clip.Time - current[^1].Time >= gap)
             {
                 sessions.Add(new ClipSession(current));
                 current = [];

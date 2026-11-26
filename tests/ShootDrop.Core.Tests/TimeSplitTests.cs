@@ -235,7 +235,7 @@ public class ClipTimelineTests
         for (var i = 0; i < times.Length; i++) pocket.Add($"DCIM/DJI_001/DJI_{i + 1:0000}.MP4", times[i]);
         var mic = new FakeCard(tmp, "DJI MIC");
         mic.Add("DJI_Audio_001/REC_0001.WAV", At(15, 0));
-        mic.Add("DJI_Audio_001/REC_0002.WAV", At(21, 0));
+        mic.Add("DJI_Audio_001/REC_0002.WAV", At(20, 55));
         var settings = new AppSettings { ProjectsRoot = Path.Combine(tmp.Path, "Projects") };
         var service = new ShootDropService(new FolderVolumeProvider(pocket.Root, mic.Root), ProfileCatalog.BuiltIn(), new FixedClock());
         return (service, settings, tmp);
@@ -305,5 +305,42 @@ public class ClipTimelineTests
         var request = CopyRequest.FromSetup(Setup.ShootDay, "Day") with { Date = DateRule.LastDays(3) };
 
         Assert.Empty(ClipTimeline.Build(service.Preview(request, settings).Cards));
+    }
+}
+
+public class TimelineBreakTests
+{
+    private static DateTime At(int hour, int minute = 0) => new(2026, 11, 23, hour, minute, 0, DateTimeKind.Local);
+
+    [Fact]
+    public void A_pause_of_exactly_the_break_starts_a_new_group()
+    {
+        var w = SessionSplitter.Suggest([At(10), At(11)], TimeSpan.FromHours(1));
+        Assert.Equal(2, w.Count);
+    }
+
+    [Fact]
+    public void The_break_length_decides_how_many_groups()
+    {
+        using var tmp = new TempDir();
+        var pocket = new FakeCard(tmp, "POCKET");
+        var times = new[] { At(9), At(9, 40), At(11), At(12, 30), At(15) }; // pauses: 40 min, 80 min, 90 min, 150 min
+        for (var i = 0; i < times.Length; i++) pocket.Add($"DCIM/DJI_001/DJI_{i + 1:0000}.MP4", times[i]);
+        var settings = new AppSettings { ProjectsRoot = Path.Combine(tmp.Path, "Projects") };
+        var service = new ShootDropService(new FolderVolumeProvider(pocket.Root), ProfileCatalog.BuiltIn(), new FixedClock());
+        var cards = service.Preview(CopyRequest.FromSetup(Setup.ShootDay, "Day"), settings).Cards;
+
+        Assert.Equal(5, ClipTimeline.Build(cards, TimeSpan.FromMinutes(30)).Count);
+        Assert.Equal(4, ClipTimeline.Build(cards, TimeSpan.FromMinutes(60)).Count);
+        Assert.Equal(2, ClipTimeline.Build(cards, TimeSpan.FromMinutes(120)).Count);
+        Assert.Single(ClipTimeline.Build(cards, TimeSpan.FromHours(4)));
+    }
+
+    [Fact]
+    public void Break_setting_defaults_to_an_hour_and_stays_in_range()
+    {
+        Assert.Equal(TimeSpan.FromHours(1), new AppSettings().TimelineBreak);
+        Assert.Equal(TimeSpan.FromMinutes(15), new AppSettings { TimelineBreakMinutes = 1 }.TimelineBreak);
+        Assert.Equal(TimeSpan.FromHours(4), new AppSettings { TimelineBreakMinutes = 999 }.TimelineBreak);
     }
 }
