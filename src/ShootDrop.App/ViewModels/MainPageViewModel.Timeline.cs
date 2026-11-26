@@ -38,7 +38,7 @@ public sealed partial class TimelineSession : ObservableObject
         Summary = $"{Format.Files(session.Clips.Count)} · {Format.Bytes(session.TotalBytes)} · {string.Join(", ", session.CardNames)}";
         CanMergeNext = canMergeNext;
         MergeNextCommand = new RelayCommand(() => merge(index));
-        ShowClipsText = $"Show {Format.Files(session.Clips.Count)}";
+        _filesText = Format.Files(session.Clips.Count);
         for (var i = 0; i < session.Clips.Count; i++)
         {
             var clipIndex = i;
@@ -56,13 +56,16 @@ public sealed partial class TimelineSession : ObservableObject
     public string Summary { get; }
     public bool CanMergeNext { get; }
     public IRelayCommand MergeNextCommand { get; }
-    public string ShowClipsText { get; }
+    private readonly string _filesText;
+    public string ShowClipsText => ShowClips ? "Hide files" : $"Show {_filesText}";
     public ObservableCollection<TimelineClipItem> Clips { get; } = [];
 
     [ObservableProperty] private string _name;
     [ObservableProperty] private bool _showClips;
 
     partial void OnNameChanged(string value) => _renamed(Index, value);
+
+    partial void OnShowClipsChanged(bool value) => OnPropertyChanged(nameof(ShowClipsText));
 
     [RelayCommand] private void ToggleClips() => ShowClips = !ShowClips;
 }
@@ -184,15 +187,26 @@ public sealed partial class MainPageViewModel
     {
         if (index >= _sessions.Count - 1) return;
         _sessionNames.RemoveAt(index + 1);
+        Renumber();
         ShowSessions(ClipTimeline.MergeWithNext(_sessions, index));
         Recompute();
+    }
+
+    /// <summary>Names the user hasn't changed ("Part 3") follow the groups' new order: Part 1, Part 2…</summary>
+    private void Renumber()
+    {
+        for (var i = 0; i < _sessionNames.Count; i++)
+        {
+            if (System.Text.RegularExpressions.Regex.IsMatch(_sessionNames[i], @"^Part \d+$|^$")) _sessionNames[i] = $"Part {i + 1}";
+        }
     }
 
     private void SplitSession(int index, int clipIndex)
     {
         var updated = ClipTimeline.SplitBefore(_sessions, index, clipIndex);
         if (ReferenceEquals(updated, _sessions)) return;
-        _sessionNames.Insert(index + 1, $"Part {_sessionNames.Count + 1}");
+        _sessionNames.Insert(index + 1, "");
+        Renumber();
         ShowSessions(updated);
         Recompute();
     }
