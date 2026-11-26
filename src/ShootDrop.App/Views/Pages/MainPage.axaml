@@ -204,9 +204,9 @@
               </StackPanel>
             </StackPanel>
 
-            <StackPanel Spacing="6">
+            <StackPanel Spacing="6" IsVisible="{Binding ShowTypedSplits}">
               <TextBlock Classes="label" Text="Split into projects by time" Margin="0" />
-              <Border Classes="card" Padding="10,8" IsVisible="{Binding HasSplits}">
+              <Border Classes="card" Padding="10,8">
                 <StackPanel Spacing="4">
                   <ItemsControl ItemsSource="{Binding SplitLines}">
                     <ItemsControl.ItemTemplate>
@@ -218,15 +218,81 @@
                   <Button Classes="link" Content="Don't split" Command="{Binding ClearSplitCommand}" FontSize="13" />
                 </StackPanel>
               </Border>
-              <Button Classes="link" Content="Split by breaks in recording" Command="{Binding SplitByBreaksCommand}" FontSize="13"
-                      IsVisible="{Binding !HasSplits}" />
-              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{Binding SplitNote}"
-                         IsVisible="{Binding SplitNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" IsVisible="{Binding !HasSplits}"
-                         Text="Or type it: “yesterday till 1 pm into A, till 6 pm into B”." />
             </StackPanel>
           </StackPanel>
         </Grid>
+
+        <!-- 4. Timeline: the day's clips grouped where recording paused, one project per group -->
+        <Border Classes="band" BorderThickness="0,1,0,0">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="2">
+                <TextBlock Classes="h2" Text="Timeline" />
+                <TextBlock Classes="muted" FontSize="13" Text="{Binding TimelineNote}" TextWrapping="Wrap" />
+              </StackPanel>
+              <CheckBox Grid.Column="1" IsChecked="{Binding TimelineOn}" IsEnabled="{Binding HasTimeline}"
+                        Content="Copy each group into its own project" VerticalAlignment="Top" />
+            </Grid>
+
+            <!-- The bar: one coloured block per group, placed by time -->
+            <StackPanel Spacing="4" IsVisible="{Binding HasTimeline}" HorizontalAlignment="Left">
+              <Border Width="{x:Static vm:MainPageViewModel.TimelineWidth}" Height="22" CornerRadius="11" Background="#ECEDF0" ClipToBounds="True">
+                <ItemsControl ItemsSource="{Binding Sessions}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><Panel /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TimelineSession">
+                      <Border Background="{Binding Color}" Width="{Binding BarWidth}" Margin="{Binding BarMargin}"
+                              HorizontalAlignment="Left" CornerRadius="11" Height="22" ToolTip.Tip="{Binding TimeText}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Grid Width="{x:Static vm:MainPageViewModel.TimelineWidth}" ColumnDefinitions="*,*">
+                <TextBlock Classes="muted" FontSize="12" Text="{Binding TimelineStart}" />
+                <TextBlock Grid.Column="1" Classes="muted" FontSize="12" Text="{Binding TimelineEnd}" HorizontalAlignment="Right" />
+              </Grid>
+            </StackPanel>
+
+            <!-- The groups: name, merge, or show clips and start a new group at any clip -->
+            <ItemsControl ItemsSource="{Binding Sessions}" IsVisible="{Binding HasTimeline}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:TimelineSession">
+                  <Border Classes="card" Padding="12,10" Margin="0,0,0,8">
+                    <StackPanel Spacing="8">
+                      <Grid ColumnDefinitions="Auto,*,220,Auto">
+                        <Ellipse Width="12" Height="12" Fill="{Binding Color}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                          <TextBlock Text="{Binding TimeText}" FontWeight="SemiBold" />
+                          <TextBlock Classes="muted" FontSize="12" Text="{Binding Summary}" />
+                        </StackPanel>
+                        <TextBox Grid.Column="2" Text="{Binding Name}" Watermark="Project name" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" Margin="12,0,0,0" VerticalAlignment="Center">
+                          <Button Classes="link" Content="{Binding ShowClipsText}" Command="{Binding ToggleClipsCommand}" FontSize="13" />
+                          <Button Classes="link" Content="Merge with next" Command="{Binding MergeNextCommand}" FontSize="13" IsVisible="{Binding CanMergeNext}" />
+                        </StackPanel>
+                      </Grid>
+                      <ItemsControl ItemsSource="{Binding Clips}" IsVisible="{Binding ShowClips}" Margin="22,0,0,0">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:TimelineClipItem">
+                            <Grid ColumnDefinitions="90,*,140,Auto" Margin="0,2">
+                              <TextBlock Text="{Binding Time}" FontSize="13" />
+                              <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" />
+                              <TextBlock Grid.Column="2" Classes="muted" Text="{Binding Card}" FontSize="12" VerticalAlignment="Center" />
+                              <Button Grid.Column="3" Classes="link" Content="Start a new group here" FontSize="12"
+                                      Command="{Binding SplitHereCommand}" IsVisible="{Binding CanSplit}" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
 

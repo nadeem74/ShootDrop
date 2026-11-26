@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Timeline: the chosen day's clips appear as coloured groups, split wherever recording paused for an hour or more.
+  Tick "Copy each group into its own project", name each group, merge two groups, or start a new group at any clip.
+  No times to type.
 - Split a day into several projects by time. Type "yesterday till 1 pm into A, till 6 pm into B and after 6 pm into C"
   in the smart box, or press "Split by breaks in recording". Review shows each project (renamable), the clips outside
   every time, and each card's first and last clip time so a wrong camera clock is easy to spot. One report per project.

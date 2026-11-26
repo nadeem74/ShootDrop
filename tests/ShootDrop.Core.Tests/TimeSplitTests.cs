@@ -221,3 +221,89 @@ public class TimeSplitTests
         Assert.Equal(new TimeWindow(T(9), T(9, 40)), parts[0].Window);
     }
 }
+
+/// <summary>The timeline: the day's clips grouped into sessions the user can merge, split and name.</summary>
+public class ClipTimelineTests
+{
+    private static DateTime At(int hour, int minute = 0, int second = 0) => new(2026, 11, 23, hour, minute, second, DateTimeKind.Local);
+
+    private static (ShootDropService Service, AppSettings Settings, TempDir Tmp) ThreeLocations()
+    {
+        var tmp = new TempDir();
+        var pocket = new FakeCard(tmp, "POCKET");
+        var times = new[] { At(9, 10), At(9, 50), At(10, 40), At(12, 58), At(14, 30), At(15, 20), At(17, 45), At(20, 0), At(21, 45) };
+        for (var i = 0; i < times.Length; i++) pocket.Add($"DCIM/DJI_001/DJI_{i + 1:0000}.MP4", times[i]);
+        var mic = new FakeCard(tmp, "DJI MIC");
+        mic.Add("DJI_Audio_001/REC_0001.WAV", At(15, 0));
+        mic.Add("DJI_Audio_001/REC_0002.WAV", At(21, 0));
+        var settings = new AppSettings { ProjectsRoot = Path.Combine(tmp.Path, "Projects") };
+        var service = new ShootDropService(new FolderVolumeProvider(pocket.Root, mic.Root), ProfileCatalog.BuiltIn(), new FixedClock());
+        return (service, settings, tmp);
+    }
+
+    [Fact]
+    public void Groups_the_day_into_sessions_across_cards()
+    {
+        var (service, settings, tmp) = ThreeLocations();
+        using var _ = tmp;
+        var preview = service.Preview(CopyRequest.FromSetup(Setup.ShootDay, "Day"), settings);
+
+        var sessions = ClipTimeline.Build(preview.Cards);
+
+        // 9:10–10:40 · 12:58 (2h18 gap before it) · 14:30–17:45 with the mic · 20:00–21:45 with the mic
+        Assert.Equal(new[] { 3, 1, 4, 3 }, sessions.Select(s => s.Clips.Count));
+        Assert.Equal(new[] { "POCKET", "DJI MIC" }, sessions[2].CardNames);
+        Assert.Equal(new TimeWindow(new TimeOnly(14, 30), new TimeOnly(17, 45)), sessions[2].Window);
+    }
+
+    [Fact]
+    public void Merge_split_and_copy_into_named_projects()
+    {
+        var (service, settings, tmp) = ThreeLocations();
+        using var _ = tmp;
+        var preview = service.Preview(CopyRequest.FromSetup(Setup.ShootDay, "Day"), settings);
+        var sessions = ClipTimeline.Build(preview.Cards);
+
+        sessions = ClipTimeline.MergeWithNext(sessions, 0);        // the 12:58 clip belongs with the morning
+        Assert.Equal(new[] { 4, 4, 3 }, sessions.Select(s => s.Clips.Count));
+        Assert.True(ClipTimeline.CanSplitBefore(sessions, 2, 1));
+        sessions = ClipTimeline.SplitBefore(sessions, 2, 1);       // 20:00 alone, 21:00 + 21:45 together
+        Assert.Equal(new[] { 4, 4, 1, 2 }, sessions.Select(s => s.Clips.Count));
+        Assert.False(ClipTimeline.CanSplitBefore(sessions, 0, 0)); // can't split before the first clip
+
+        var splits = ClipTimeline.ToSplits(sessions, ["Fort", "Cafe", "Night", "Night"]);
+        var plan = service.Preview(CopyRequest.FromSetup(Setup.ShootDay, "Day") with { Splits = splits }, settings).Plan;
+        Assert.Equal(new[] { "Fort", "Cafe", "Night" }, plan.AllParts.Select(p => p.Name));
+        Assert.Equal(new[] { 4, 4, 3 }, plan.AllParts.Select(p => p.Items.Count));
+        Assert.Empty(plan.UnassignedFiles);
+    }
+
+    [Fact]
+    public void Clips_in_the_same_minute_stay_together()
+    {
+        using var tmp = new TempDir();
+        var pocket = new FakeCard(tmp, "POCKET");
+        pocket.Add("DCIM/DJI_001/DJI_0001.MP4", At(10, 0, 5));
+        pocket.Add("DCIM/DJI_001/DJI_0002.MP4", At(10, 0, 50));
+        var settings = new AppSettings { ProjectsRoot = Path.Combine(tmp.Path, "Projects") };
+        var service = new ShootDropService(new FolderVolumeProvider(pocket.Root), ProfileCatalog.BuiltIn(), new FixedClock());
+        var sessions = ClipTimeline.Build(service.Preview(CopyRequest.FromSetup(Setup.ShootDay, "Day"), settings).Cards);
+
+        Assert.False(ClipTimeline.CanSplitBefore(sessions, 0, 1));
+        Assert.Same(sessions, ClipTimeline.SplitBefore(sessions, 0, 1));
+    }
+
+    [Fact]
+    public void Several_days_give_no_timeline()
+    {
+        using var tmp = new TempDir();
+        var pocket = new FakeCard(tmp, "POCKET");
+        pocket.Add("DCIM/DJI_001/DJI_0001.MP4", Days.At(22));
+        pocket.Add("DCIM/DJI_001/DJI_0002.MP4", Days.At(23));
+        var settings = new AppSettings { ProjectsRoot = Path.Combine(tmp.Path, "Projects") };
+        var service = new ShootDropService(new FolderVolumeProvider(pocket.Root), ProfileCatalog.BuiltIn(), new FixedClock());
+        var request = CopyRequest.FromSetup(Setup.ShootDay, "Day") with { Date = DateRule.LastDays(3) };
+
+        Assert.Empty(ClipTimeline.Build(service.Preview(request, settings).Cards));
+    }
+}

@@ -254,31 +254,9 @@ public sealed partial class MainPageViewModel : PageViewModel
         Recompute();
     }
 
+    /// <summary>"Split by breaks in recording": turns on the timeline, which groups clips where recording paused.</summary>
     [RelayCommand]
-    private async Task SplitByBreaksAsync()
-    {
-        CopyPreview p;
-        try
-        {
-            p = await _ctx.PreviewAsync(CurrentRequest(SelectedKeys()) with { Splits = null });
-        }
-        catch (Exception e) when (e is InvalidOperationException or ArgumentException or IOException)
-        {
-            SplitNote = e.Message;
-            return;
-        }
-        var suggested = ShootDropService.SuggestSplits(p);
-        if (suggested.Count < 2)
-        {
-            SplitNote = p.Cards.Count == 0 ? "Nothing to split with these choices."
-                : suggested.Count == 0 ? "Pick a single day to split by breaks."
-                : "No break of an hour or more on that day, so it stays one project.";
-            return;
-        }
-        SetSplits(suggested);
-        SplitNote = $"Found {suggested.Count} sessions with breaks between them. Rename the parts on the next screen.";
-        Recompute();
-    }
+    private void SplitByBreaks() => TimelineOn = true;
 
     /// <summary>Re-scans with the current choices and updates every card's numbers and the footer.</summary>
     internal async void Recompute()
@@ -301,6 +279,13 @@ public sealed partial class MainPageViewModel : PageViewModel
             return;
         }
         if (version != _version) return;
+
+        // The timeline follows the selected cards' clips; if it changed while it's in use, plan again with it.
+        if (UpdateTimeline(all.Cards.Where(cf => Cards.Any(c => c.IsSelected && c.Name == cf.Card.Name)).ToList()))
+        {
+            Recompute();
+            return;
+        }
 
         long bytes = 0;
         int files = 0, cards = 0;
@@ -397,7 +382,15 @@ public sealed partial class MainPageViewModel : PageViewModel
         if (r.Kinds is { } k) SetKinds(k);
         if (r.ProjectName is { } name) ProjectName = name;
         _loading = false;
-        SetSplits(r.Splits);
+        if (r.Splits is not null)
+        {
+            TimelineOn = false; // typed times win over the timeline
+            SetSplits(r.Splits);
+        }
+        else if (!TimelineOn)
+        {
+            SetSplits(null);
+        }
         SplitNote = "";
 
         var cardsText = Cards.All(c => c.IsSelected) ? "All cards" : string.Join(", ", Cards.Where(c => c.IsSelected).Select(c => c.Name));
