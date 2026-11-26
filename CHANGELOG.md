@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Timeline: tick boxes on each group and on each file ("Show files"). Untick a group or single clips to leave them on
+  the card; the group shows "40 of 46 files" and the footer counts what's left out. Works with or without splitting.
 - Resume: if a copy is cut short (card pulled out, power cut, app closed), ShootDrop shows "A copy didn't finish" with
   **Resume** the next time. Resume copies only what's left, to the same places, removes half-written files first, and
   the reports list every file of the whole copy. Files whose card isn't plugged in wait until it is.

@@ -8,14 +8,21 @@ using ShootDrop.Core.Media;
 
 namespace ShootDrop.App.ViewModels;
 
-/// <summary>One clip in a session's list, with "Start a new group here".</summary>
-public sealed class TimelineClipItem(string time, string name, string card, bool canSplit, Action split)
+/// <summary>One clip in a session's list: tick to copy it, or "Start a new group here".</summary>
+public sealed partial class TimelineClipItem(string path, string time, string name, string card, string size, bool canSplit,
+    bool included, Action split, Action<string, bool> setIncluded) : ObservableObject
 {
+    public string Path { get; } = path;
     public string Time { get; } = time;
     public string Name { get; } = name;
     public string Card { get; } = card;
+    public string Size { get; } = size;
     public bool CanSplit { get; } = canSplit;
     public IRelayCommand SplitHereCommand { get; } = new RelayCommand(split);
+
+    [ObservableProperty] private bool _included = included;
+
+    partial void OnIncludedChanged(bool value) => setIncluded(Path, value);
 }
 
 /// <summary>One group of clips on the timeline (usually one location), with the project it goes to.</summary>
@@ -23,9 +30,17 @@ public sealed partial class TimelineSession : ObservableObject
 {
     private readonly Action<int, string> _renamed;
 
+    private readonly Action<IEnumerable<string>, bool> _setManyIncluded;
+    private readonly long _totalBytes;
+    private bool _bulk;
+
     public TimelineSession(int index, ClipSession session, string name, IBrush color, double left, double width,
-        bool canMergeNext, Action<int> merge, Action<int, string> renamed, Func<int, int, bool> canSplit, Action<int, int> split)
+        bool canMergeNext, Action<int> merge, Action<int, string> renamed, Func<int, int, bool> canSplit, Action<int, int> split,
+        Func<string, bool> isIncluded, Action<IEnumerable<string>, bool> setManyIncluded)
     {
+        _setManyIncluded = setManyIncluded;
+        _totalBytes = session.TotalBytes;
+        _cardNames = string.Join(", ", session.CardNames);
         Index = index;
         _name = name;
         _renamed = renamed;
@@ -35,7 +50,7 @@ public sealed partial class TimelineSession : ObservableObject
         TimeText = session.Clips.Count == 1
             ? TimeWindow.Format(TimeOnly.FromDateTime(session.First))
             : $"{TimeWindow.Format(TimeOnly.FromDateTime(session.First))} – {TimeWindow.Format(TimeOnly.FromDateTime(session.Last))}";
-        Summary = $"{Format.Files(session.Clips.Count)} · {Format.Bytes(session.TotalBytes)} · {string.Join(", ", session.CardNames)}";
+
         CanMergeNext = canMergeNext;
         MergeNextCommand = new RelayCommand(() => merge(index));
         _filesText = Format.Files(session.Clips.Count);
@@ -43,9 +58,48 @@ public sealed partial class TimelineSession : ObservableObject
         {
             var clipIndex = i;
             var c = session.Clips[i];
-            Clips.Add(new TimelineClipItem(TimeWindow.Format(TimeOnly.FromDateTime(c.Time)), c.File.Name, c.CardName,
-                canSplit(index, clipIndex), () => split(index, clipIndex)));
+            var item = new TimelineClipItem(c.File.Path, TimeWindow.Format(TimeOnly.FromDateTime(c.Time)), c.File.Name, c.CardName,
+                Format.Bytes(c.File.Size), canSplit(index, clipIndex), isIncluded(c.File.Path), () => split(index, clipIndex),
+                (path, on) => { if (!_bulk) setManyIncluded([path], on); });
+            item.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(TimelineClipItem.Included) && !_bulk) RefreshIncluded();
+            };
+            Clips.Add(item);
         }
+        _sizes = session.Clips.ToDictionary(c => c.File.Path, c => c.File.Size);
+        RefreshIncluded();
+    }
+
+    private readonly string _cardNames;
+    private Dictionary<string, long> _sizes = [];
+
+    /// <summary>"46 files · 14.1 GB · LUMIX, DJI", or "40 of 46 files · …" when some are unticked.</summary>
+    [ObservableProperty] private string _summary = "";
+
+    /// <summary>Group tick box: true = every file copies, false = none, null = some.</summary>
+    [ObservableProperty] private bool? _included = true;
+
+    partial void OnIncludedChanged(bool? value)
+    {
+        if (_bulk || value is null) return;
+        _bulk = true;
+        foreach (var clip in Clips) clip.Included = value.Value;
+        _bulk = false;
+        _setManyIncluded(Clips.Select(c => c.Path), value.Value);
+        RefreshIncluded();
+    }
+
+    private void RefreshIncluded()
+    {
+        var on = Clips.Where(c => c.Included).ToList();
+        _bulk = true;
+        Included = on.Count == Clips.Count ? true : on.Count == 0 ? false : null;
+        _bulk = false;
+        var bytes = on.Sum(c => _sizes.GetValueOrDefault(c.Path));
+        Summary = on.Count == Clips.Count
+            ? $"{Format.Files(Clips.Count)} · {Format.Bytes(_totalBytes)} · {_cardNames}"
+            : $"{on.Count} of {Format.Files(Clips.Count)} · {Format.Bytes(bytes)} · {_cardNames} · {(on.Count == 0 ? "not copied" : "some left out")}";
     }
 
     public int Index { get; }
@@ -53,7 +107,6 @@ public sealed partial class TimelineSession : ObservableObject
     public Avalonia.Thickness BarMargin { get; }
     public double BarWidth { get; }
     public string TimeText { get; }
-    public string Summary { get; }
     public bool CanMergeNext { get; }
     public IRelayCommand MergeNextCommand { get; }
     private readonly string _filesText;
@@ -94,6 +147,21 @@ public sealed partial class MainPageViewModel
     [ObservableProperty] private string _timelineEnd = "";
 
     private IReadOnlyList<CardFiles> _timelineCards = [];
+
+    /// <summary>Card files the person unticked on the timeline. They stay on the card.</summary>
+    private readonly HashSet<string> _excluded = new(StringComparer.Ordinal);
+
+    private IReadOnlySet<string>? ExcludedFiles => _excluded.Count > 0 ? _excluded.ToHashSet(StringComparer.Ordinal) : null;
+
+    private void SetIncluded(IEnumerable<string> paths, bool included)
+    {
+        foreach (var p in paths)
+        {
+            if (included) _excluded.Remove(p);
+            else _excluded.Add(p);
+        }
+        Recompute();
+    }
 
     /// <summary>The slider: a pause at least this long starts a new group (15 min to 4 h, in 15-minute steps).</summary>
     public double BreakMinutes
@@ -170,7 +238,8 @@ public sealed partial class MainPageViewModel
             var width = (s.Last - s.First).TotalMinutes / span * usable;
             Sessions.Add(new TimelineSession(i, s, _sessionNames[i], Palette[i % Palette.Length], left, width,
                 i < sessions.Count - 1, MergeSession, RenameSession,
-                (si, ci) => ClipTimeline.CanSplitBefore(_sessions, si, ci), SplitSession));
+                (si, ci) => ClipTimeline.CanSplitBefore(_sessions, si, ci), SplitSession,
+                path => !_excluded.Contains(path), SetIncluded));
         }
         if (TimelineOn) UseTimelineSplits();
     }

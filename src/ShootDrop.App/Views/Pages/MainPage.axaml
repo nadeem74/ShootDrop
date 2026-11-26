@@ -269,26 +269,30 @@
                 <DataTemplate x:DataType="vm:TimelineSession">
                   <Border Classes="card" Padding="12,10" Margin="0,0,0,8">
                     <StackPanel Spacing="8">
-                      <Grid ColumnDefinitions="Auto,*,220,230">
-                        <Ellipse Width="12" Height="12" Fill="{Binding Color}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                        <StackPanel Grid.Column="1" Spacing="2">
+                      <Grid ColumnDefinitions="Auto,Auto,*,220,230">
+                        <CheckBox IsChecked="{Binding Included}" VerticalAlignment="Center" Margin="0,0,6,0"
+                                  ToolTip.Tip="Copy this group. Untick to leave all its files on the card." />
+                        <Ellipse Grid.Column="1" Width="12" Height="12" Fill="{Binding Color}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <StackPanel Grid.Column="2" Spacing="2">
                           <TextBlock Text="{Binding TimeText}" FontWeight="SemiBold" />
                           <TextBlock Classes="muted" FontSize="12" Text="{Binding Summary}" />
                         </StackPanel>
-                        <TextBox Grid.Column="2" Text="{Binding Name}" Watermark="Project name" VerticalAlignment="Center" />
-                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <TextBox Grid.Column="3" Text="{Binding Name}" Watermark="Project name" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right">
                           <Button Classes="link" Content="{Binding ShowClipsText}" Command="{Binding ToggleClipsCommand}" FontSize="13" />
                           <Button Classes="link" Content="Merge with next" Command="{Binding MergeNextCommand}" FontSize="13" IsVisible="{Binding CanMergeNext}" />
                         </StackPanel>
                       </Grid>
-                      <ItemsControl ItemsSource="{Binding Clips}" IsVisible="{Binding ShowClips}" Margin="22,0,0,0">
+                      <ItemsControl ItemsSource="{Binding Clips}" IsVisible="{Binding ShowClips}" Margin="0,0,0,0">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:TimelineClipItem">
-                            <Grid ColumnDefinitions="90,*,140,170" MinHeight="26">
-                              <TextBlock Text="{Binding Time}" FontSize="13" VerticalAlignment="Center" />
-                              <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" />
-                              <TextBlock Grid.Column="2" Classes="muted" Text="{Binding Card}" FontSize="12" VerticalAlignment="Center" />
-                              <Button Grid.Column="3" Classes="link" Content="Start a new group here" FontSize="12" VerticalAlignment="Center"
+                            <Grid ColumnDefinitions="Auto,90,*,90,140,170" MinHeight="26">
+                              <CheckBox IsChecked="{Binding Included}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                              <TextBlock Grid.Column="1" Text="{Binding Time}" FontSize="13" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="2" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="3" Classes="muted" Text="{Binding Size}" FontSize="12" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="4" Classes="muted" Text="{Binding Card}" FontSize="12" VerticalAlignment="Center" />
+                              <Button Grid.Column="5" Classes="link" Content="Start a new group here" FontSize="12" VerticalAlignment="Center"
                                       HorizontalAlignment="Right" Command="{Binding SplitHereCommand}" IsVisible="{Binding CanSplit}" />
                             </Grid>
                           </DataTemplate>

@@ -10,14 +10,17 @@ namespace ShootDrop.Core;
 /// <summary>
 /// What the user asked for: one project, one date rule, some file types, some cards.
 /// With <see cref="Splits"/>, clips are spread over several projects by the time they were recorded.
+/// <see cref="ExcludedFiles"/> holds full paths of card files the person unticked; they are not copied.
 /// </summary>
 public sealed record CopyRequest(
     string ProjectName,
     DateRule Date,
     IReadOnlySet<FileKind> Kinds,
     IReadOnlyList<string>? CardKeys,
-    IReadOnlyList<ProjectSplit>? Splits = null)
+    IReadOnlyList<ProjectSplit>? Splits = null,
+    IReadOnlySet<string>? ExcludedFiles = null)
 {
+
     public static CopyRequest FromSetup(Setup setup, string projectName) =>
         new(projectName, setup.Date, setup.Kinds.ToHashSet(), setup.CardKeys);
 
@@ -94,11 +97,22 @@ public sealed class ShootDropService
             .Where(cf => cf.Files.Count > 0)
             .ToList();
 
+        // Files the person unticked (on the timeline) stay on the card. Cards keeps every file so the
+        // timeline can still show them; only the plan leaves them out.
+        var planned = selected;
+        if (request.ExcludedFiles is { Count: > 0 } excluded)
+        {
+            planned = selected
+                .Select(cf => cf with { Files = cf.Files.Where(f => !excluded.Contains(f.Path)).ToList() })
+                .Where(cf => cf.Files.Count > 0)
+                .ToList();
+        }
+
         if (request.Splits is { Count: > 0 } splits)
-            return new CopyPreview(request, selected, BuildSplit(request, splits, selected, settings));
+            return new CopyPreview(request, selected, BuildSplit(request, splits, planned, settings));
 
         var projectRoot = Path.Combine(settings.ProjectsRoot, SanitizeProjectName(request.ProjectName));
-        var plan = CopyPlanner.Build(projectRoot, selected, settings.Routing);
+        var plan = CopyPlanner.Build(projectRoot, planned, settings.Routing);
         return new CopyPreview(request, selected, plan);
     }
 

@@ -344,3 +344,33 @@ public class TimelineBreakTests
         Assert.Equal(TimeSpan.FromHours(4), new AppSettings { TimelineBreakMinutes = 999 }.TimelineBreak);
     }
 }
+
+public class ExcludeFilesTests
+{
+    [Fact]
+    public void Unticked_files_are_not_planned_but_still_listed_on_the_card()
+    {
+        using var tmp = new TempDir();
+        var pocket = new FakeCard(tmp, "POCKET");
+        var keep = pocket.Add("DCIM/DJI_001/DJI_0001.MP4", Days.At(23, 9));
+        var skip1 = pocket.Add("DCIM/DJI_001/DJI_0002.MP4", Days.At(23, 10));
+        var skip2 = pocket.Add("DCIM/DJI_001/DJI_0003.MP4", Days.At(23, 20));
+        var settings = new AppSettings { ProjectsRoot = Path.Combine(tmp.Path, "Projects") };
+        var service = new ShootDropService(new FolderVolumeProvider(pocket.Root), ProfileCatalog.BuiltIn(), new FixedClock());
+        var excluded = new HashSet<string> { skip1, skip2 };
+
+        var plain = service.Preview(CopyRequest.FromSetup(Setup.ShootDay, "Day") with { ExcludedFiles = excluded }, settings);
+        Assert.Equal(keep, plain.Plan.Items.Single().Source.Path);
+        Assert.Equal(3, plain.Cards.Single().Files.Count); // the timeline still sees all three
+
+        // A whole group unticked: its project simply gets nothing.
+        var splits = new[]
+        {
+            new ProjectSplit("Morning", new TimeWindow(null, new TimeOnly(12, 0))),
+            new ProjectSplit("Night", new TimeWindow(new TimeOnly(18, 0), null)),
+        };
+        var split = service.Preview(CopyRequest.FromSetup(Setup.ShootDay, "Day") with { Splits = splits, ExcludedFiles = excluded }, settings);
+        Assert.Equal(new[] { 1, 0 }, split.Plan.AllParts.Select(p => p.Items.Count));
+        Assert.Empty(split.Plan.UnassignedFiles); // unticked is not "outside the times"
+    }
+}

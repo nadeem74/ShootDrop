@@ -42,7 +42,7 @@ public sealed partial class ReviewPageViewModel : PageViewModel
             : $"Copy {Format.Files(plan.Items.Count)} ({Format.Bytes(plan.TotalBytes)}) into “{name}”";
         Subtitle = $"{preview.Request.Date.Describe(ctx.Today)} · {Format.Kinds(preview.Request.Kinds)} · nothing has been copied yet";
 
-        foreach (var part in plan.AllParts)
+        foreach (var part in plan.AllParts.Where(p => p.Items.Count > 0))
             Parts.Add(new PartRow(part.Name, part.Window?.Describe() ?? "", part.Items.Count, part.TotalBytes));
         var unassigned = plan.UnassignedFiles;
         if (unassigned.Count > 0)

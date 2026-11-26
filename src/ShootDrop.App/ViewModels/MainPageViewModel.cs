@@ -227,7 +227,7 @@ public sealed partial class MainPageViewModel : PageViewModel
 
     private string QuickName() => string.IsNullOrWhiteSpace(QuickProjectName) ? _ctx.DefaultProjectName : QuickProjectName.Trim();
 
-    private CopyRequest CurrentRequest(IReadOnlyList<string>? keys) => new(Name(), CurrentDate(), CurrentKinds(), keys, _splits);
+    private CopyRequest CurrentRequest(IReadOnlyList<string>? keys) => new(Name(), CurrentDate(), CurrentKinds(), keys, _splits, ExcludedFiles);
 
     // ---- Split by time ---------------------------------------------------------------------
     // "till 1 pm into A, till 6 pm into B" from the smart box, or "Split by breaks".
@@ -311,7 +311,11 @@ public sealed partial class MainPageViewModel : PageViewModel
                                 + (projects > 1 ? $" · {projects} projects" : "")
             : "Nothing to copy with these choices";
         var outside = all.Plan.UnassignedFiles.Count;
+        var leftOut = all.Cards.Where(cf => Cards.Any(c => c.IsSelected && c.Name == cf.Card.Name))
+            .Sum(cf => cf.Files.Count(f => _excluded.Contains(f.Path)));
         WarnLine = blocked ? "Choose a folder for the unknown card before you continue."
+            : leftOut > 0 && outside > 0 ? $"{Format.Files(leftOut)} unticked and {Format.Files(outside)} outside the chosen times won't be copied."
+            : leftOut > 0 ? $"{Format.Files(leftOut)} unticked on the timeline won't be copied."
             : outside > 0 ? $"{Format.Files(outside)} outside the chosen times won't be copied."
             : "Nothing is overwritten. Every file is checked after copying.";
         CanReview = files > 0 && !blocked && CurrentKinds().Count > 0;
