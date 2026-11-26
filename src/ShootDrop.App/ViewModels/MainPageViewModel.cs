@@ -117,6 +117,9 @@ public sealed partial class MainPageViewModel : PageViewModel
     public ObservableCollection<TryChip> Tries { get; } = [];
     public ObservableCollection<string> QuickPills { get; } = [];
     public string[] DateOptions { get; } = ["Today", "Yesterday", "Last 3 days", "Pick dates"];
+    /// <summary>The footer message is a problem that stops the copy: shown in red.</summary>
+    [ObservableProperty] private bool _warnIsProblem;
+
     [ObservableProperty] private bool _noCards;
 
     // ---- Quick copy (Copy like last time) -------------------------------------------------
@@ -275,6 +278,7 @@ public sealed partial class MainPageViewModel : PageViewModel
         {
             TotalLine = "Can't scan yet";
             WarnLine = e.Message;
+            WarnIsProblem = true;
             CanReview = false;
             return;
         }
@@ -313,12 +317,15 @@ public sealed partial class MainPageViewModel : PageViewModel
         var outside = all.Plan.UnassignedFiles.Count;
         var leftOut = all.Cards.Where(cf => Cards.Any(c => c.IsSelected && c.Name == cf.Card.Name))
             .Sum(cf => cf.Files.Count(f => _excluded.Contains(f.Path)));
+        var storage = files > 0 ? _ctx.CheckStorage(bytes) : null;
+        WarnIsProblem = blocked || storage?.Blocks == true;
         WarnLine = blocked ? "Choose a folder for the unknown card before you continue."
+            : storage?.Blocks == true ? storage.Message
             : leftOut > 0 && outside > 0 ? $"{Format.Files(leftOut)} unticked and {Format.Files(outside)} outside the chosen times won't be copied."
             : leftOut > 0 ? $"{Format.Files(leftOut)} unticked on the timeline won't be copied."
             : outside > 0 ? $"{Format.Files(outside)} outside the chosen times won't be copied."
             : "Nothing is overwritten. Every file is checked after copying.";
-        CanReview = files > 0 && !blocked && CurrentKinds().Count > 0;
+        CanReview = files > 0 && !blocked && storage?.Blocks != true && CurrentKinds().Count > 0;
         await RefreshQuickAsync();
     }
 
@@ -333,8 +340,9 @@ public sealed partial class MainPageViewModel : PageViewModel
         {
             var p = await _ctx.PreviewAsync(CopyRequest.FromSetup(setup, QuickName()));
             QuickPills.Add(p.Plan.Items.Count > 0 ? $"{Format.Files(p.Plan.Items.Count)} · {Format.Bytes(p.Plan.TotalBytes)}" : "Nothing to copy");
-            QuickCanCopy = p.Plan.CanRun;
-            QuickButton = p.Plan.Items.Count > 0 ? "Copy now" : "Nothing to copy";
+            var quickStorage = p.Plan.Items.Count > 0 ? _ctx.CheckStorage(p.Plan.TotalBytes) : null;
+            QuickCanCopy = p.Plan.CanRun && quickStorage?.Blocks != true;
+            QuickButton = quickStorage?.Blocks == true ? "Can't copy" : p.Plan.Items.Count > 0 ? "Copy now" : "Nothing to copy";
         }
         catch (Exception e) when (e is InvalidOperationException or ArgumentException or IOException)
         {

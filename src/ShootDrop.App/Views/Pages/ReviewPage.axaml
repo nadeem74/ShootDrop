@@ -13,6 +13,13 @@
           <TextBlock Classes="muted" FontSize="14" Text="{Binding Subtitle}" />
         </StackPanel>
 
+        <Border Classes="problem" IsVisible="{Binding HasProblem}">
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Classes="problem" Text="⚠" FontSize="16" Margin="0,0,10,0" />
+            <TextBlock Grid.Column="1" Classes="problem" Text="{Binding Problem}" FontSize="14" />
+          </Grid>
+        </Border>
+
         <Grid ColumnDefinitions="*,320">
           <StackPanel Spacing="18" Margin="0,0,20,0">
             <StackPanel IsVisible="{Binding IsSplit}">
@@ -88,10 +95,13 @@
               <Border Classes="card" Padding="14,6">
                 <ItemsControl ItemsSource="{Binding Checks}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="sys:String">
+                    <DataTemplate x:DataType="vm:CheckLine">
                       <Grid ColumnDefinitions="26,*" Margin="0,7">
-                        <TextBlock Classes="good" Text="✓" />
-                        <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" />
+                        <TextBlock Classes="good" Text="✓" IsVisible="{Binding Ok}" />
+                        <TextBlock Classes="problem" Text="✕" IsVisible="{Binding Problem}" />
+                        <TextBlock Classes="muted" Text="•" IsVisible="{Binding Note}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" IsVisible="{Binding !Problem}" />
+                        <TextBlock Grid.Column="1" Classes="problem" Text="{Binding Text}" IsVisible="{Binding Problem}" />
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>

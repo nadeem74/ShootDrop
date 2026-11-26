@@ -11,8 +11,8 @@
         <Border Width="64" Height="64" CornerRadius="32" Background="{StaticResource GoodTint}" Margin="0,0,20,0" IsVisible="{Binding Success}">
           <TextBlock Text="✓" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Good}" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
-        <Border Width="64" Height="64" CornerRadius="32" Background="{StaticResource WarnTint}" Margin="0,0,20,0" IsVisible="{Binding NotSuccess}">
-          <TextBlock Text="!" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Warn}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Border Width="64" Height="64" CornerRadius="32" Background="{StaticResource DangerTint}" Margin="0,0,20,0" IsVisible="{Binding NotSuccess}">
+          <TextBlock Text="!" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Danger}" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
           <TextBlock Classes="h1" FontSize="28" Text="{Binding Headline}" />
@@ -42,7 +42,7 @@
                         <TextBlock Classes="name" Text="{Binding Card}" />
                         <TextBlock Grid.Column="1" Text="{Binding Folder}" />
                         <TextBlock Grid.Column="2" Text="{Binding Files}" HorizontalAlignment="Right" />
-                        <TextBlock Grid.Column="3" Text="{Binding Result}" HorizontalAlignment="Right" Classes.good="{Binding Ok}" />
+                        <TextBlock Grid.Column="3" Text="{Binding Result}" HorizontalAlignment="Right" Classes.good="{Binding Ok}" Classes.problem="{Binding !Ok}" />
                       </Grid>
                     </Border>
                   </DataTemplate>
@@ -50,11 +50,11 @@
               </ItemsControl>
             </StackPanel>
           </Border>
-          <Border Classes="warn" IsVisible="{Binding HasFailures}">
+          <Border Classes="problem" IsVisible="{Binding HasFailures}">
             <ItemsControl ItemsSource="{Binding Failures}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="sys:String">
-                  <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{StaticResource Warn}" FontSize="13" />
+                  <TextBlock Classes="problem" Text="{Binding}" FontSize="13" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

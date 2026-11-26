@@ -219,7 +219,8 @@ public sealed class BackgroundController : IDisposable
 
     /// <summary>Running as ShootDrop.app (not `dotnet run`): only then is a login item meaningful.</summary>
     public static bool CanStartAtLogin =>
-        OperatingSystem.IsMacOS() && Environment.ProcessPath?.Contains(".app/Contents/MacOS/", StringComparison.Ordinal) == true;
+        OperatingSystem.IsMacOS() && Environment.ProcessPath?.Contains(".app/Contents/MacOS/", StringComparison.Ordinal) == true
+        && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SHOOTDROP_TEST_DIR")); // test copies never take over the login item
 
     public void SetStartAtLogin(bool on)
     {
@@ -236,7 +237,7 @@ public sealed class BackgroundController : IDisposable
         try
         {
             if (Settings.StartAtLogin && CanStartAtLogin) LoginItem.Enable(Environment.ProcessPath!);
-            else if (!Settings.StartAtLogin) LoginItem.Disable();
+            else if (!Settings.StartAtLogin && CanStartAtLogin) LoginItem.Disable();
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

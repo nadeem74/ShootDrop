@@ -19,8 +19,11 @@ public sealed class BackgroundSettings
     /// <summary>Closing the window hides it; ShootDrop keeps running in the menu bar.</summary>
     public bool KeepRunningInMenuBar { get; set; } = true;
 
-    /// <summary>Start ShootDrop (hidden, in the menu bar) when the user logs in.</summary>
-    public bool StartAtLogin { get; set; }
+    /// <summary>
+    /// Start ShootDrop (hidden, in the menu bar) when the user logs in, so it can open by itself when cards
+    /// go in. On by default; first-run setup asks.
+    /// </summary>
+    public bool StartAtLogin { get; set; } = true;
 
     /// <summary>The system-wide shortcut opens Ready to copy.</summary>
     public bool ShortcutEnabled { get; set; } = true;

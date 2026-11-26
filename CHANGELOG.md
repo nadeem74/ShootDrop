@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Runs as a service: starts at login (on by default, asked during setup), waits in the menu bar and opens by itself
+  when a card goes in. If it ever crashes, macOS starts it again.
+- Problems are red: projects drive not connected, not enough space, unknown card, failed files. Copying can't start
+  while the drive is missing or too full, from the Ready window, More options or Review.
+- Steadier window: switching between the small Ready window and the full window keeps it in place and on screen, and
+  the full window remembers the size you gave it.
 - Timeline: tick boxes on each group and on each file ("Show files"). Untick a group or single clips to leave them on
   the card; the group shows "40 of 46 files" and the footer counts what's left out. Works with or without splitting.
 - Resume: if a copy is cut short (card pulled out, power cut, app closed), ShootDrop shows "A copy didn't finish" with

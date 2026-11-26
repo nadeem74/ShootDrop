@@ -6,7 +6,8 @@ namespace ShootDrop.Platform.Mac;
 /// <summary>
 /// Start at login (FR-24) with a per-user LaunchAgent: ~/Library/LaunchAgents/io.github.shootdrop.app.plist.
 /// It works for unsigned builds (SMAppService needs a signed app) and is easy to inspect or delete by hand.
-/// The agent starts ShootDrop with --background, so it goes straight to the menu bar.
+/// The agent starts ShootDrop with --background, so it goes straight to the menu bar. If ShootDrop crashes,
+/// macOS starts it again (KeepAlive on unsuccessful exit); choosing Quit ends it until the next login.
 /// </summary>
 [SupportedOSPlatform("macos")]
 public static class LoginItem
@@ -43,6 +44,11 @@ public static class LoginItem
             <string>{BackgroundArgument}</string>
           </array>
           <key>RunAtLoad</key><true/>
+          <key>KeepAlive</key>
+          <dict>
+            <key>SuccessfulExit</key><false/>
+          </dict>
+          <key>ThrottleInterval</key><integer>30</integer>
           <key>ProcessType</key><string>Interactive</string>
           <key>LimitLoadToSessionType</key><string>Aqua</string>
         </dict>

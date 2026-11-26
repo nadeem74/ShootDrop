@@ -66,8 +66,13 @@
 
       <Button Classes="primary big" HorizontalAlignment="Stretch" Command="{Binding CopyNowCommand}" Content="{Binding ButtonText}" />
 
-      <Border Classes="warn" IsVisible="{Binding HasStatus}">
-        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Foreground="{StaticResource Warn}" FontSize="13" />
+      <Border Classes.warn="{Binding !StatusIsProblem}" Classes.problem="{Binding StatusIsProblem}" IsVisible="{Binding HasStatus}">
+        <Grid ColumnDefinitions="Auto,*">
+          <TextBlock Classes="problem" Text="⚠" Margin="0,0,8,0" IsVisible="{Binding StatusIsProblem}" />
+          <TextBlock Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" FontSize="13"
+                     Foreground="{StaticResource Warn}" IsVisible="{Binding !StatusIsProblem}" />
+          <TextBlock Grid.Column="1" Classes="problem" Text="{Binding Status}" FontSize="13" IsVisible="{Binding StatusIsProblem}" />
+        </Grid>
       </Border>
 
       <Grid ColumnDefinitions="Auto,*">

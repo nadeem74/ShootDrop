@@ -38,6 +38,10 @@ public sealed class ShootDropContext
 
     public void Save() => Store.Save(Settings);
 
+    /// <summary>Is the projects drive plugged in, with room for <paramref name="bytes"/>?</summary>
+    public StorageStatus CheckStorage(long bytes) =>
+        StorageCheck.Evaluate(Settings.ProjectsRoot, bytes, Platform.FreeBytes, Directory.Exists);
+
     /// <summary>Scans the cards off the UI thread.</summary>
     public Task<CopyPreview> PreviewAsync(CopyRequest request)
     {
@@ -127,6 +131,8 @@ public sealed partial class ShellViewModel : ObservableObject
         ToastText = null;
         ToastAction = null;
     }
+
+    public ShootDropContext Context => _ctx;
 
     public ShellViewModel(ShootDropContext ctx)
     {

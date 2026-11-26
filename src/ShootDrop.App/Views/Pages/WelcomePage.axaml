@@ -71,9 +71,10 @@
               <TextBlock Text="3" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
             <StackPanel Grid.Column="1" Spacing="6">
-              <TextBlock Text="Smart box helper" FontSize="16" FontWeight="SemiBold" />
-              <TextBlock Classes="muted" FontSize="14"
-                         Text="Quick rules already understand “yesterday”, “last 3 days”, card names and Hinglish like “kal”. A small AI model for free-form sentences comes in v0.2. It will run only on this Mac." />
+              <TextBlock Text="Run in the background" FontSize="16" FontWeight="SemiBold" />
+              <CheckBox IsChecked="{Binding RunInBackground}" Content="Start ShootDrop when I log in, and open it when I insert a card" />
+              <TextBlock Classes="muted" FontSize="13"
+                         Text="It waits in the menu bar and uses almost no power. Nothing is copied until you press Copy. You can change this in Settings." />
             </StackPanel>
           </Grid>
         </Border>

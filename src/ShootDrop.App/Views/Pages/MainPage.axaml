@@ -313,7 +313,8 @@
       <Grid ColumnDefinitions="*,Auto,Auto,Auto">
         <StackPanel VerticalAlignment="Center">
           <TextBlock Text="{Binding TotalLine}" FontSize="15" FontWeight="SemiBold" />
-          <TextBlock Classes="muted" Text="{Binding WarnLine}" />
+          <TextBlock Classes="muted" Text="{Binding WarnLine}" IsVisible="{Binding !WarnIsProblem}" />
+          <TextBlock Classes="problem" FontSize="13" Text="{Binding WarnLine, StringFormat='⚠  {0}'}" IsVisible="{Binding WarnIsProblem}" />
         </StackPanel>
         <Button Grid.Column="1" Classes="link" Content="Settings" Command="{Binding OpenSettingsCommand}" Margin="0,0,12,0" />
         <Button Grid.Column="2" Classes="plain" Content="Ready window" Command="{Binding BackToReadyCommand}" Margin="0,0,10,0" />

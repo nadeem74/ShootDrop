@@ -13,6 +13,12 @@ namespace ShootDrop.App.ViewModels;
 public sealed record PlanRow(string Card, string Folder, string Files, string Size);
 public sealed record TreeLine(string Text, double Indent, string Note, bool Empty);
 
+/// <summary>One line in Review's checks: fine (green ✓), a note (grey •), or a problem that stops the copy (red ✕).</summary>
+public sealed record CheckLine(string Text, bool Problem = false, bool Note = false)
+{
+    public bool Ok => !Problem && !Note;
+}
+
 /// <summary>One project of a time-split copy, shown in Review. The name can still be changed there.</summary>
 public sealed partial class PartRow(string originalName, string when, int files, long bytes) : ObservableObject
 {
@@ -58,15 +64,14 @@ public sealed partial class ReviewPageViewModel : PageViewModel
         TotalFiles = plan.Items.Count.ToString();
         TotalSize = Format.Bytes(plan.TotalBytes);
 
-        var free = ctx.Platform.FreeBytes(ctx.Settings.ProjectsRoot);
-        EnoughSpace = free is null || free.Value > plan.TotalBytes;
-        Checks.Add(free is null ? "Couldn't read free space on the projects drive"
-            : EnoughSpace ? $"Enough space: {Format.Bytes(free.Value)} free, this needs {Format.Bytes(plan.TotalBytes)}"
-            : $"Not enough space: {Format.Bytes(free.Value)} free, this needs {Format.Bytes(plan.TotalBytes)}");
+        var storage = ctx.CheckStorage(plan.TotalBytes);
+        EnoughSpace = !storage.Blocks;
+        Problem = storage.Blocks ? storage.Message : "";
+        Checks.Add(new CheckLine(storage.Message, Problem: storage.Blocks, Note: storage.Problem == StorageProblem.Unknown));
         var existing = parts.Count(p => Directory.Exists(p.ProjectRoot));
-        Checks.Add(existing == 0 ? (IsSplit ? "New project folders, made from your folder structure" : "New project folder, made from your folder structure")
+        Checks.Add(new CheckLine(existing == 0 ? (IsSplit ? "New project folders, made from your folder structure" : "New project folder, made from your folder structure")
             : IsSplit ? $"{existing} of these project folders already exist. New files are added; nothing in them is overwritten."
-            : "Project folder already exists. New files are added; nothing in it is overwritten.");
+            : "Project folder already exists. New files are added; nothing in it is overwritten."));
         if (IsSplit)
         {
             // Splitting trusts each camera's clock, so show the time span per card to make a wrong clock easy to spot.
@@ -74,11 +79,11 @@ public sealed partial class ReviewPageViewModel : PageViewModel
             {
                 var first = c.Files.Min(f => f.Modified);
                 var last = c.Files.Max(f => f.Modified);
-                Checks.Add($"{c.Card.Name}: clips from {TimeWindow.Format(TimeOnly.FromDateTime(first))} to {TimeWindow.Format(TimeOnly.FromDateTime(last))}. If that looks wrong, check the camera's clock.");
+                Checks.Add(new CheckLine($"{c.Card.Name}: clips from {TimeWindow.Format(TimeOnly.FromDateTime(first))} to {TimeWindow.Format(TimeOnly.FromDateTime(last))}. If that looks wrong, check the camera's clock.", Note: true));
             }
         }
-        Checks.Add("Cards are opened read-only. Nothing on them is changed or deleted.");
-        Checks.Add("Each file is checked with a checksum after it is copied");
+        Checks.Add(new CheckLine("Cards are opened read-only. Nothing on them is changed or deleted."));
+        Checks.Add(new CheckLine("Each file is checked with a checksum after it is copied"));
 
         foreach (var part in parts) AddTree(part);
         Location = IsSplit
@@ -119,7 +124,11 @@ public sealed partial class ReviewPageViewModel : PageViewModel
     public bool HasUnassigned => UnassignedText.Length > 0;
     public ObservableCollection<PartRow> Parts { get; } = [];
     public ObservableCollection<PlanRow> Rows { get; } = [];
-    public ObservableCollection<string> Checks { get; } = [];
+    public ObservableCollection<CheckLine> Checks { get; } = [];
+
+    /// <summary>A problem that stops the copy, shown in red at the top; empty when there is none.</summary>
+    public string Problem { get; } = "";
+    public bool HasProblem => Problem.Length > 0;
     public ObservableCollection<TreeLine> Tree { get; } = [];
     [ObservableProperty] private string _renameError = "";
 
