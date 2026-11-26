@@ -231,7 +231,7 @@ public class ClipTimelineTests
     {
         var tmp = new TempDir();
         var pocket = new FakeCard(tmp, "POCKET");
-        var times = new[] { At(9, 10), At(9, 50), At(10, 40), At(12, 58), At(14, 30), At(15, 20), At(17, 45), At(20, 0), At(21, 45) };
+        var times = new[] { At(9, 10), At(9, 50), At(10, 40), At(12, 58), At(14, 30), At(15, 20), At(16, 5), At(20, 0), At(21, 45) };
         for (var i = 0; i < times.Length; i++) pocket.Add($"DCIM/DJI_001/DJI_{i + 1:0000}.MP4", times[i]);
         var mic = new FakeCard(tmp, "DJI MIC");
         mic.Add("DJI_Audio_001/REC_0001.WAV", At(15, 0));
@@ -250,10 +250,10 @@ public class ClipTimelineTests
 
         var sessions = ClipTimeline.Build(preview.Cards);
 
-        // 9:10–10:40 · 12:58 (2h18 gap before it) · 14:30–17:45 with the mic · 20:00–21:45 with the mic
+        // 9:10–10:40 · 12:58 (2h18 gap before it) · 14:30–16:05 with the mic · 20:00–21:45 with the mic
         Assert.Equal(new[] { 3, 1, 4, 3 }, sessions.Select(s => s.Clips.Count));
         Assert.Equal(new[] { "POCKET", "DJI MIC" }, sessions[2].CardNames);
-        Assert.Equal(new TimeWindow(new TimeOnly(14, 30), new TimeOnly(17, 45)), sessions[2].Window);
+        Assert.Equal(new TimeWindow(new TimeOnly(14, 30), new TimeOnly(16, 5)), sessions[2].Window);
     }
 
     [Fact]
