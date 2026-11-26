@@ -57,6 +57,7 @@ from every card into a project folder you define, checks every byte, understands
 | FR-22 | Compact "Ready to copy" landing window | ✅ |
 | FR-23 | Global keyboard shortcut | ✅ v0.2, customisable (macOS) |
 | FR-24 | Start at login, run in the background | ✅ v0.2 (macOS) |
+| FR-25 | Split one day into several projects by recording time ("till 1 pm into A, till 6 pm into B"), from the smart box or "Split by breaks"; clips outside every time are shown, not copied | ✅ v0.3 |
 
 ## Non-functional requirements
 

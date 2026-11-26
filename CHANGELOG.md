@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Split a day into several projects by time. Type "yesterday till 1 pm into A, till 6 pm into B and after 6 pm into C"
+  in the smart box, or press "Split by breaks in recording". Review shows each project (renamable), the clips outside
+  every time, and each card's first and last clip time so a wrong camera clock is easy to spot. One report per project.
 - Windows code signing set up through SignPath Foundation (free for open source). Signing switches on once the project is approved; see CODE_SIGNING_POLICY.md.
 - Homebrew cask: `brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop`, `brew trust nadeem74/shootdrop`, `brew install --cask shootdrop`. Tested on a Mac mini (Apple Silicon, Homebrew 7).
 - Buy Me a Coffee link (README and GitHub's Sponsor button).

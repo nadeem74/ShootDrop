@@ -203,6 +203,28 @@
                 <Button Classes="link" Content="Edit folder structure" Command="{Binding EditFoldersCommand}" FontSize="13" />
               </StackPanel>
             </StackPanel>
+
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Text="Split into projects by time" Margin="0" />
+              <Border Classes="card" Padding="10,8" IsVisible="{Binding HasSplits}">
+                <StackPanel Spacing="4">
+                  <ItemsControl ItemsSource="{Binding SplitLines}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="sys:String">
+                        <TextBlock Text="{Binding}" FontSize="13" Margin="0,2" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <Button Classes="link" Content="Don't split" Command="{Binding ClearSplitCommand}" FontSize="13" />
+                </StackPanel>
+              </Border>
+              <Button Classes="link" Content="Split by breaks in recording" Command="{Binding SplitByBreaksCommand}" FontSize="13"
+                      IsVisible="{Binding !HasSplits}" />
+              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{Binding SplitNote}"
+                         IsVisible="{Binding SplitNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" IsVisible="{Binding !HasSplits}"
+                         Text="Or type it: “yesterday till 1 pm into A, till 6 pm into B”." />
+            </StackPanel>
           </StackPanel>
         </Grid>
       </StackPanel>

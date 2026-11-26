@@ -13,7 +13,8 @@ The AI has one narrow task: turn a sentence into a copy filter the app already u
 
 ```json
 { "cards": ["POCKET4P", "LUMIX"], "dateFrom": "2026-11-22", "dateTo": "2026-11-22",
-  "types": ["video", "audio"], "projectName": "Sinhagad trip" }
+  "types": ["video", "audio"], "projectName": "Sinhagad trip",
+  "splits": [ { "project": "Sinhagad", "to": "13:00" }, { "project": "Cafe review", "from": "13:01", "to": "18:00" } ] }
 ```
 
 It never copies, deletes or acts on its own. The filter appears in the normal controls and the person presses Copy.
@@ -34,6 +35,10 @@ flowchart LR
 
 1. **Rules first** (`ShootDrop.Core.SmartBox.RuleParser`): today, yesterday, last N days, dates and ranges,
    card names, file types, project name, Hinglish (`aaj`, `kal`, `din`, `sab`). Fast, deterministic, unit-tested.
+   Since v0.3 the rules also read **time splits**: "copy yesterday's footage till 1 pm into Project A,
+   till 6 pm into B and after 6 pm into C" (also "1-6pm", "between 2 and 5 pm", "1 baje tak").
+   Each part becomes its own project; a clip goes to the part whose time holds the moment it stopped
+   recording. "Split by breaks" suggests the parts from gaps in recording, no typing needed.
 2. **Model second:** only when the rules aren't sure. The prompt includes today's date and the names of the
    plugged-in cards and known profiles.
 3. **Constrained output:** llama.cpp grammar forces valid JSON matching the schema.
