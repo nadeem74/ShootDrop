@@ -115,9 +115,9 @@ public class TimeSplitTests
     {
         var clips = new[]
         {
-            At(22, 9, 10), At(22, 10, 5), At(22, 12, 58),   // location 1
-            At(22, 14, 30), At(22, 15, 0), At(22, 17, 45),  // location 2 (1.5 h drive before it)
-            At(22, 20, 0), At(22, 22, 50),                  // location 3
+            At(22, 9, 10), At(22, 9, 50), At(22, 10, 40), At(22, 11, 30), At(22, 12, 20), At(22, 12, 58), // location 1
+            At(22, 14, 30), At(22, 15, 20), At(22, 16, 10), At(22, 17, 0), At(22, 17, 45),                // location 2 (1.5 h drive before it)
+            At(22, 20, 0), At(22, 20, 50), At(22, 21, 40), At(22, 22, 20), At(22, 22, 50),                // location 3
         };
         var windows = SessionSplitter.Suggest(clips);
         Assert.Equal(3, windows.Count);
