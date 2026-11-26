@@ -18,7 +18,7 @@ public static partial class RuleParser
     /// the text with those parts blanked out, so the rest of the parser doesn't read "6 pm" as a date or
     /// "project B" as the main project.
     /// </summary>
-    internal static (IReadOnlyList<ProjectSplit>? Splits, string Rest) ParseSplits(string text)
+    internal static (IReadOnlyList<ProjectSplit>? Splits, string Remaining) ParseSplits(string text)
     {
         var lower = text.ToLowerInvariant();
         var times = FindTimes(lower);
