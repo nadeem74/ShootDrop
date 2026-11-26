@@ -20,9 +20,13 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var store = SettingsStore.Default();
+            // Test mode (SHOOTDROP_TEST_DIR): settings live in that folder and every subfolder of its "cards"
+            // folder acts as a plugged-in card. Lets anyone try ShootDrop with fake cards, never real ones.
+            var testDir = Environment.GetEnvironmentVariable("SHOOTDROP_TEST_DIR");
+            var testing = !string.IsNullOrWhiteSpace(testDir);
+            var store = testing ? new SettingsStore(Path.Combine(testDir!, "settings.json")) : SettingsStore.Default();
             var settings = store.Load();
-            var volumes = new SystemVolumeProvider();
+            IVolumeProvider volumes = testing ? new TestCardsVolumeProvider(Path.Combine(testDir!, "cards")) : new SystemVolumeProvider();
             var service = new ShootDropService(volumes, ProfileCatalog.Load(store.ProfilesDirectory));
             var monitor = new CardMonitor(service, settings, volumes);
 
@@ -44,4 +48,13 @@ public partial class App : Application
 
         base.OnFrameworkInitializationCompleted();
     }
+}
+
+/// <summary>Test mode: each subfolder of <paramref name="folder"/> is a card. Re-read on every scan.</summary>
+internal sealed class TestCardsVolumeProvider(string folder) : IVolumeProvider
+{
+    public IReadOnlyList<VolumeInfo> List() =>
+        Directory.Exists(folder)
+            ? Directory.GetDirectories(folder).Order(StringComparer.Ordinal).Select(d => new VolumeInfo(d, Path.GetFileName(d))).ToList()
+            : [];
 }
