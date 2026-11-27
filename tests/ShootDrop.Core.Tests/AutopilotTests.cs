@@ -99,6 +99,8 @@ public class AutopilotTests
     [InlineData("Sinhagad Fort then Lunch aur phir Cafe review", "Sinhagad Fort|Lunch|Cafe review")]
     [InlineData("subah Sinhagad Fort; dopahar Lunch; shaam Cafe review", "Sinhagad Fort|Lunch|Cafe review")]
     [InlineData("Sinhagad trip", "Sinhagad trip|Sinhagad trip|Sinhagad trip")]
+    [InlineData("morning Sinhagad Fort, Lunch at Vohuman, Night walk", "Sinhagad Fort|Lunch at Vohuman|Night walk")]
+    [InlineData("evening: cafe, night - street food, Night walk", "cafe|street food|Night walk")]
     public void Rules_name_sessions_from_the_note(string note, string expected)
     {
         using var tmp = new TempDir();
