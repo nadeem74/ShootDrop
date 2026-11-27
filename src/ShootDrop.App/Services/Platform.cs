@@ -66,20 +66,5 @@ public sealed class DesktopPlatform : IPlatform
         }
     }
 
-    public long? FreeBytes(string path)
-    {
-        try
-        {
-            var full = Path.GetFullPath(path);
-            var drive = DriveInfo.GetDrives()
-                .Where(d => d.IsReady && full.StartsWith(d.RootDirectory.FullName, StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(d => d.RootDirectory.FullName.Length)
-                .FirstOrDefault();
-            return drive?.AvailableFreeSpace;
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
-    }
+    public long? FreeBytes(string path) => Core.Copying.StorageCheck.FreeBytes(path);
 }

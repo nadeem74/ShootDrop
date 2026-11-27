@@ -34,7 +34,7 @@ dotnet run --project src/ShootDrop.Cli -- help
 - `src/ShootDrop.App`: Avalonia app. `Services/BackgroundController` runs the menu bar, shortcut and card arrival. ShellViewModel hosts pages: Welcome, Ready, Main, Review, Copying, Done, Settings.
 - `tests/ShootDrop.Core.Tests`: xUnit with fake cards in temp folders (`FakeCard.cs`).
 - `profiles/*.json`: camera profiles, embedded into Core.
-- `docs/adr`: decisions. `docs/PRD.md`: requirements and status. `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/AI.md`.
+- `docs/adr`: decisions. `docs/PRD.md`: requirements and status. `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/AI.md`, `docs/AGENTS-GUIDE.md` (agent plan, ADR-008).
 
 ## Rules that must never break (ADR-003)
 

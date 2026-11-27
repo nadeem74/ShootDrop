@@ -21,11 +21,12 @@ public class CardArrivalTests
             Routing.Default());
 
     [Fact]
-    public void A_newly_plugged_card_opens_the_ready_window_by_default()
+    public void A_newly_plugged_card_opens_the_autopilot_by_default()
     {
         var pocket = Card("/Volumes/POCKET", Pocket);
         var decision = CardArrival.OnCardsChanged([], [pocket], new BackgroundSettings().WhenCardsPluggedIn, copyRunning: false);
-        Assert.Equal(ArrivalDecision.ShowReadyWindow, decision);
+        Assert.Equal(ArrivalDecision.ShowAutopilot, decision);
+        Assert.Equal(ArrivalDecision.ShowReadyWindow, CardArrival.OnCardsChanged([], [pocket], CardArrivalAction.ShowReadyWindow, false));
     }
 
     [Fact]
@@ -85,7 +86,7 @@ public class CardArrivalTests
     {
         using var tmp = new TempDir();
         var store = new SettingsStore(Path.Combine(tmp.Path, "settings.json"));
-        Assert.Equal(CardArrivalAction.ShowReadyWindow, store.Load().Background.WhenCardsPluggedIn);
+        Assert.Equal(CardArrivalAction.AskOnce, store.Load().Background.WhenCardsPluggedIn);
 
         var s = store.Load();
         s.Background.StartAtLogin = true;

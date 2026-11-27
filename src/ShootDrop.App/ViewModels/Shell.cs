@@ -244,7 +244,10 @@ public sealed partial class ShellViewModel : ObservableObject
 
     public void GoReview(CopyPreview preview) => Show(new ReviewPageViewModel(_ctx, preview));
 
-    public void GoCopying(CopyPreview preview) => Show(new CopyingPageViewModel(_ctx, preview));
+    public void GoCopying(CopyPreview preview, bool autopilot = false) => Show(new CopyingPageViewModel(_ctx, preview, autopilot));
+
+    /// <summary>The autopilot screen: new sessions, ready names, one Start (FR-26).</summary>
+    public void GoAuto() => Show(new AutoPageViewModel(_ctx));
 
     public void GoDone(DonePageViewModel done) => Show(done);
 

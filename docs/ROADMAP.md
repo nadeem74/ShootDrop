@@ -25,6 +25,12 @@ Still to do:
 - Linux and Windows: fix what testers find, then mark them supported — *help wanted*
 - More camera profiles: Sony, Canon, GoPro, Insta360, Zoom, Rode — *help wanted*
 
+## v0.4: put the cards in, press Return ([ADR-008](adr/0008-autopilot-and-agent.md))
+
+- Ignore drives that aren't camera cards
+- Autopilot: auto-open screen with sessions, dated names and one Start; menu bar status; `shootdrop auto`
+- Then: tools (also over MCP), the agent with grounded suggestions, traces and evals ([AGENTS-GUIDE.md](AGENTS-GUIDE.md))
+
 ## Later (ideas, not promises)
 
 - Clip date from file metadata instead of the file timestamp

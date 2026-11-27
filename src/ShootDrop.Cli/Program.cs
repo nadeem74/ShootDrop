@@ -41,6 +41,10 @@ try
             return Plan(run: false).GetAwaiter().GetResult();
         case "copy":
             return Plan(run: true).GetAwaiter().GetResult();
+        case "auto":
+            return AutoCommand.RunAsync(service, settings, store, opts.Get("note"), opts.Has("yes"), opts.Has("agent")).GetAwaiter().GetResult();
+        case "mcp":
+            return McpServer.RunAsync(service, settings, store).GetAwaiter().GetResult();
         case "config":
             store.Save(settings);
             Console.WriteLine($"Saved settings to {store.Path}");
@@ -235,6 +239,8 @@ static void PrintHelp() => Console.WriteLine("""
       ask   "all cards, yesterday for Sinhagad trip"   Test the smart box rules
       setups                     List saved setups and the last one used
       config --root <dir> [--template-dir <dir>]       Save where projects go
+      auto  [--note "..."] [--agent] [--yes]           Autopilot: new sessions, dated names, one question, copy
+      mcp                        Offer ShootDrop's tools to AI apps over MCP (stdio)
 
     Options
       --name <project>           Project name (default: today's date, e.g. "23 Nov 2026")
@@ -247,6 +253,8 @@ static void PrintHelp() => Console.WriteLine("""
       --root <dir>               Projects folder for this run
       --settings <file>          Use another settings.json
       --yes                      Don't ask before copying
+      --note "..."               auto: what you shot, e.g. "morning Sinhagad Fort, evening Cafe review"
+      --agent                    auto: let Claude suggest names (needs ANTHROPIC_API_KEY)
 
     Cards are only ever read. Nothing in a project is overwritten.
     """);
@@ -258,7 +266,7 @@ sealed class Options
     public string Command { get; private set; } = "";
     public List<string> Positional { get; } = [];
 
-    private static readonly HashSet<string> Flags = new(StringComparer.OrdinalIgnoreCase) { "yes", "help" };
+    private static readonly HashSet<string> Flags = new(StringComparer.OrdinalIgnoreCase) { "yes", "help", "agent" };
 
     public static Options Parse(string[] args)
     {

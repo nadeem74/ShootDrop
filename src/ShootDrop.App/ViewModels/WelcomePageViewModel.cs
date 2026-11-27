@@ -100,7 +100,7 @@ public sealed partial class WelcomePageViewModel : PageViewModel
             s.Routing.ByKind[Core.Media.FileKind.Audio] = "Footage";
         }
         s.Background.KeepRunningInMenuBar = true;
-        if (RunInBackground) s.Background.WhenCardsPluggedIn = Core.Background.CardArrivalAction.ShowReadyWindow;
+        if (RunInBackground) s.Background.WhenCardsPluggedIn = Core.Background.CardArrivalAction.AskOnce;
         _ctx.Save();
         _ctx.Background?.SetStartAtLogin(RunInBackground);
         _ctx.Monitor.Refresh();

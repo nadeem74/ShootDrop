@@ -12,6 +12,7 @@
   <Window.DataTemplates>
     <DataTemplate DataType="{x:Type vm:WelcomePageViewModel}"><p:WelcomePage /></DataTemplate>
     <DataTemplate DataType="{x:Type vm:ReadyPageViewModel}"><p:ReadyPage /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:AutoPageViewModel}"><p:AutoPage /></DataTemplate>
     <DataTemplate DataType="{x:Type vm:MainPageViewModel}"><p:MainPage /></DataTemplate>
     <DataTemplate DataType="{x:Type vm:ReviewPageViewModel}"><p:ReviewPage /></DataTemplate>
     <DataTemplate DataType="{x:Type vm:CopyingPageViewModel}"><p:CopyingPage /></DataTemplate>

@@ -17,7 +17,8 @@ The AI has one narrow task: turn a sentence into a copy filter the app already u
   "splits": [ { "project": "Sinhagad", "to": "13:00" }, { "project": "Cafe review", "from": "13:01", "to": "18:00" } ] }
 ```
 
-It never copies, deletes or acts on its own. The filter appears in the normal controls and the person presses Copy.
+It never deletes anything. Since [ADR-008](adr/0008-autopilot-and-agent.md) the plan is that the person confirms **once** on a
+single screen (or chooses a Countdown or fully automatic mode); see [AGENTS-GUIDE.md](AGENTS-GUIDE.md).
 
 ## How a request flows
 

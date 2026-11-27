@@ -73,11 +73,11 @@ public class WindowSizeSettingTests
 public class ServiceDefaultsTests
 {
     [Fact]
-    public void Starts_at_login_and_opens_the_ready_window_for_cards_by_default()
+    public void Starts_at_login_and_opens_the_autopilot_for_cards_by_default()
     {
         var s = new ShootDrop.Core.Settings.AppSettings();
         Assert.True(s.Background.StartAtLogin);
         Assert.True(s.Background.KeepRunningInMenuBar);
-        Assert.Equal(ShootDrop.Core.Background.CardArrivalAction.ShowReadyWindow, s.Background.WhenCardsPluggedIn);
+        Assert.Equal(ShootDrop.Core.Background.CardArrivalAction.AskOnce, s.Background.WhenCardsPluggedIn);
     }
 }
