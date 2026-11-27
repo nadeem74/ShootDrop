@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Autopilot (ADR-008): put the cards in and one screen opens with the new recording sessions in time order, each named
+  by the date and time of its first clip (`2026-11-27 0915`), and the free space. Untick or rename, press **Start
+  copying** (or Return) and the rest happens by itself. Next time only clips recorded since are offered. This is now
+  what happens when a card goes in; choose "Show Ready to copy" in the menu bar to go back. Also `shootdrop auto`.
+- "What did you shoot?": type "morning Sinhagad Fort, evening Cafe review" and the sessions are named from it. With an
+  Anthropic API key, Claude suggests the names instead; every name must come from your note or an existing project, or
+  it's refused. The reasons are in `last-naming.txt` next to the settings.
+- `shootdrop mcp`: ShootDrop's tools for AI apps such as Claude Desktop (list cards, find new sessions, check space, copy).
+- A backup drive with a stray WAV file is no longer taken for a DJI Mic card.
+
 - Runs as a service: starts at login (on by default, asked during setup), waits in the menu bar and opens by itself
   when a card goes in. If it ever crashes, macOS starts it again.
 - Problems are red: projects drive not connected, not enough space, unknown card, failed files. Copying can't start

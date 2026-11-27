@@ -86,3 +86,94 @@ three can't drift apart. ShootDrop already works this way through `ShootDropServ
 - **Grounding:** answers tied to real data, with the source shown.
 - **Human in the loop:** a person approves before the action happens.
 - **Eval:** a scored test set for AI behaviour.
+
+---
+
+## Phase 1: the autopilot (built)
+
+**What happens:** a card goes in → `CardArrival` decides `ShowAutopilot` → the app opens `AutoPage` →
+`AutoCopy.Propose` finds the new clips and groups them into sessions → you press **Start** → the normal copy engine runs
+→ `AutoCopy.Remember` stores, per card, the newest clip now safely copied.
+
+| File | What it does |
+| --- | --- |
+| `src/ShootDrop.Core/Autopilot/AutoCopy.cs` | The one shared flow: `Propose` (what's new, sessions, date names), `Preview` (the copy plan for the sessions you kept), `Remember` (the per-card bookmark) |
+| `src/ShootDrop.App/ViewModels/AutoPageViewModel.cs` + `Views/Pages/AutoPage.axaml` | The one screen: sessions with tick boxes and names, the space check in red if it's a problem, Start |
+| `src/ShootDrop.Cli/AutoCommand.cs` | `shootdrop auto`: the same flow in a terminal |
+| `src/ShootDrop.Core/Cards/ProfileDetector.cs` | A card counts as an audio recorder only if (almost) everything on it is audio, so a backup drive doesn't pop the screen up |
+
+**Ideas to take away**
+
+- **"What's new" is a bookmark, not a guess.** Per card, the newest clip already copied. Anything later is new.
+  A card it has never seen offers only its latest day, so an old full card doesn't offer months of footage.
+  Unticking a session and copying a later one moves the bookmark past it: unticked means "not wanted".
+- **Idempotent by design.** Names come from clip times, so the same session always maps to the same folder, and the
+  engine skips files that are already there and identical. Inserting the same card twice copies nothing twice.
+- **The request remembers a rule, not a date.** A copy saves its request as "last used". The autopilot keeps your
+  setup's rule ("today") there, so the Ready window doesn't get stuck on a past date.
+
+## Phase 2: tools (built)
+
+| File | What it does |
+| --- | --- |
+| `src/ShootDrop.Core/Agent/ShootDropTools.cs` | Four tools with JSON schemas: `list_cards`, `find_new_sessions`, `check_storage` (read-only) and `copy_sessions` |
+| `src/ShootDrop.Cli/McpServer.cs` | `shootdrop mcp`: speaks MCP (JSON-RPC 2.0, one message per line on stdin/stdout) so Claude Desktop can use those tools |
+
+**Try it:** add this to Claude Desktop's MCP settings, then ask "any new footage on my cards?":
+
+```json
+{ "mcpServers": { "shootdrop": { "command": "/opt/homebrew/bin/shootdrop", "args": ["mcp"] } } }
+```
+
+(Use wherever your `shootdrop` CLI is; build it with `dotnet publish src/ShootDrop.Cli`.)
+
+**Ideas to take away**
+
+- A **tool** is just a function plus a description and an input schema. The model reads the descriptions to decide.
+- **MCP** is the plug standard: write the tools once, any AI app can use them.
+- `copy_sessions` doesn't get any new powers. It calls the same autopilot and engine, so ADR-003 still holds, and
+  Claude Desktop asks you before each call.
+
+## Phase 3: the naming agent (built)
+
+| File | What it does |
+| --- | --- |
+| `src/ShootDrop.Core/Agent/SessionNamer.cs` | **Rules first:** splits your note ("morning X, evening Y", "X then Y", "X aur phir Y") into names and matches them to sessions in order. Also `Grounding`: the check every name must pass |
+| `src/ShootDrop.Core/Agent/NamingAgent.cs` | **The agent loop** (look → tool → result → repeat → `submit_names`), the `IModelClient` interface, and `AnthropicModel` (Claude over plain HTTP) |
+
+**How a run goes**
+
+```text
+You: "Sinhagad Fort in the morning, cafe later"     Sessions: 09:15, 14:05, 18:30
+Claude → get_sessions, get_note, get_past_projects
+Claude → submit_names: 0 "Sinhagad Fort", 1 "Golden hour magic", 2 "Cafe review"
+Grounding: 0 ✓ in your note · 1 ✗ refused (made up) → keeps "2026-11-23 1405" · 2 ✓ existing project
+```
+
+That exact case is a test: `AutopilotTests.The_agent_uses_tools_and_made_up_names_are_refused`.
+
+**Turning Claude on (optional):** put your API key in a file `anthropic-key.txt` next to ShootDrop's settings
+(macOS: `~/Library/Application Support/ShootDrop/`), or set `ANTHROPIC_API_KEY` for the CLI. Without a key the rules do
+the naming. The model is `AgentModel` in settings (default `claude-haiku-5-5`, the small and cheap one).
+
+**Ideas to take away**
+
+- **Least privilege:** the naming agent gets three read-only tools and one way to hand in its answer. It has no copy tool at all.
+- **Guardrails in code:** "never invent a name" is in the prompt, but `Grounding.Enforce` is what makes it true.
+- **A loop needs a stop:** at most 6 turns. If the model never hands in names, nothing changes.
+- **Swap the brain:** the agent only knows `IModelClient`. A local model is one new class; the tests use a scripted fake.
+
+## Phase 4: traces and tests (built)
+
+- **Trace:** every naming run writes `last-naming.txt` next to the settings: which tools it called, which names it
+  accepted and why, which it refused. The CLI prints the same lines.
+- **Tests without a network:** `ScriptedModel` in `AutopilotTests.cs` plays back fixed model turns. That tests the loop
+  and the guardrails exactly, every time, for free.
+- **Not yet:** scoring the real model on a set of sample shoots (an eval). That needs an API key in CI and costs a
+  little per run, so it waits until naming has more facts to work with (calendar, GPS).
+
+## What's next
+
+- Facts from your **calendar** (event names and times) and **GPS** in the clips, so names can be grounded without a note.
+- **Countdown** and **Fully automatic** trust levels, and a notification with *Show in Finder* / *Rename*.
+- A **local model** behind `IModelClient`, then compare it with Claude on the same test set.

@@ -117,9 +117,15 @@ The smart box is built **AI-ready, rules-first**, on purpose ([ADR-005](docs/adr
 - **Next (v0.2):** sentences the rules don't understand go to a **tiny local language model** (≈0.3–0.5B parameters,
   GGUF via [LLamaSharp](https://github.com/SciSharp/LLamaSharp)/llama.cpp). It runs **on your machine, offline**, its
   output is forced into a JSON schema and validated, and **you always confirm before anything is copied**.
-  The AI fills in the form. It never presses the button.
+  The AI fills in the form; you press Start.
 - **The learning part:** an eval set built from the rule tests, synthetic training pairs, a LoRA fine-tune, then the
   smallest model that hits the accuracy target. All of it will be in this repo. See [docs/AI.md](docs/AI.md).
+
+**Autopilot and agent (v0.4, [ADR-008](docs/adr/0008-autopilot-and-agent.md)):** cards in → one screen with the new
+recording sessions and dated names → **Start**. Optionally write what you shot ("morning Sinhagad Fort, evening Cafe
+review") and the sessions are named from it, by rules or by Claude with an API key. The agent only gets read-only tools,
+and a name that isn't in your note or your existing projects is refused. `shootdrop mcp` offers the same tools to AI apps.
+How it's built, step by step: [docs/AGENTS-GUIDE.md](docs/AGENTS-GUIDE.md).
 
 Want to work on on-device AI in .NET? This is a good place to start. 👀
 
