@@ -252,7 +252,13 @@ public sealed partial class CopyingPageViewModel : PageViewModel
         {
             var result = await _ctx.Service.RunAsync(_preview, _ctx.Settings, progress, _cts.Token, _ctx.Journal);
             _clock.Stop();
-            if (_autopilot) Core.Autopilot.AutoCopy.Remember(_ctx.Settings, result.Files); // next insert offers only newer clips
+            if (_autopilot)
+            {
+                Core.Autopilot.AutoCopy.Remember(_ctx.Settings, result.Files); // next insert offers only newer clips
+                _ctx.Platform.Notify("ShootDrop", result.Failed == 0
+                    ? $"Copied {result.Copied + result.Skipped} files, all verified."
+                    : $"{result.Failed} file(s) failed. Open ShootDrop to see which.");
+            }
             _ctx.Save(); // remembers "last used"
             if (_ctx.Settings.OpenFinderWhenDone) _ctx.Platform.OpenFolder(plan.IsSplit ? _ctx.Settings.ProjectsRoot : plan.ProjectRoot);
             var ejected = false;

@@ -10,6 +10,7 @@
   Anthropic API key, Claude suggests the names instead; every name must come from your note or an existing project, or
   it's refused. The reasons are in `last-naming.txt` next to the settings.
 - `shootdrop mcp`: ShootDrop's tools for AI apps such as Claude Desktop (list cards, find new sessions, check space, copy).
+- The autopilot screen asks you to name each project ("3 shoots found. Name each project"); a blank name uses the date. A macOS notification says when the copy is done.
 - A backup drive with a stray WAV file is no longer taken for a DJI Mic card.
 
 - Runs as a service: starts at login (on by default, asked during setup), waits in the menu bar and opens by itself

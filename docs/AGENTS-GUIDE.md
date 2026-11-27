@@ -172,8 +172,14 @@ the naming. The model is `AgentModel` in settings (default `claude-haiku-5-5`, t
 - **Not yet:** scoring the real model on a set of sample shoots (an eval). That needs an API key in CI and costs a
   little per run, so it waits until naming has more facts to work with (calendar, GPS).
 
-## What's next
+## Decided: you always name the projects (27 Nov 2026)
 
-- Facts from your **calendar** (event names and times) and **GPS** in the clips, so names can be grounded without a note.
-- **Countdown** and **Fully automatic** trust levels, and a notification with *Show in Finder* / *Rename*.
-- A **local model** behind `IModelClient`, then compare it with Claude on the same test set.
+The app finds how many shoots are on the cards (3, 4…) and **asks you** to name each project. The name boxes start
+empty, with the date name as a grey hint; leave one blank and it gets that date name. The note box and the Claude agent
+stay as optional helpers.
+
+Dropped on purpose: GPS (these cameras don't record it), calendar naming, and the Countdown / Fully automatic
+modes. The lesson: **an agent should only automate what the person actually wants handed over.** Copying, checking and
+reporting are routine, so they're automatic. Naming is a decision you want to keep, so the app asks.
+
+When the copy finishes, a macOS notification says how many files were copied and verified.

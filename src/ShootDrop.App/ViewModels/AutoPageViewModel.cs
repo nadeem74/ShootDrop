@@ -15,7 +15,10 @@ public sealed partial class AutoSessionRow(int index, AutoSession session) : Obs
     public string Time { get; } = $"{session.First:HH:mm} – {session.Last:HH:mm}";
     public string Detail { get; } = $"{session.Day:ddd d MMM} · {session.ClipCount} clips · {Format.Bytes(session.TotalBytes)} · {string.Join(", ", session.Session.CardNames)}";
     [ObservableProperty] private bool _included = true;
-    [ObservableProperty] private string _name = session.DefaultName;
+    /// <summary>Starts empty: the person names each project. Left blank, it gets the date name shown as the hint.</summary>
+    [ObservableProperty] private string _name = "";
+    public string Placeholder { get; } = session.DefaultName;
+    public string Label { get; } = $"Project {index + 1}";
     [ObservableProperty] private string _source = "";
 }
 
@@ -70,8 +73,8 @@ public sealed partial class AutoPageViewModel : PageViewModel
         {
             0 when cards.Count == 0 => "Insert a card",
             0 => "Nothing new on the cards",
-            1 => $"1 new session on {string.Join(" + ", cards.Select(c => c.Name))}",
-            _ => $"{Sessions.Count} new sessions on {string.Join(" + ", cards.Select(c => c.Name))}",
+            1 => "1 shoot found. What's the project called?",
+            _ => $"{Sessions.Count} shoots found. Name each project",
         };
         if (!HasSessions)
         {
@@ -91,7 +94,7 @@ public sealed partial class AutoPageViewModel : PageViewModel
         foreach (var row in Sessions)
         {
             var s = result.Names.FirstOrDefault(n => n.Session == row.Index);
-            row.Name = s?.Name ?? row.Session.DefaultName;
+            row.Name = s?.Name ?? "";
             row.Source = s is null ? "" : "from " + s.Source;
         }
     }
