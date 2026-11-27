@@ -11,6 +11,9 @@ public interface IPlatform
     void OpenFolder(string path);
     Task<bool> EjectAsync(string volumePath);
     long? FreeBytes(string path);
+
+    /// <summary>A system notification, e.g. "Copied 42 clips". Best effort: does nothing where unsupported.</summary>
+    void Notify(string title, string text);
 }
 
 public sealed class DesktopPlatform : IPlatform
@@ -67,4 +70,21 @@ public sealed class DesktopPlatform : IPlatform
     }
 
     public long? FreeBytes(string path) => Core.Copying.StorageCheck.FreeBytes(path);
+
+    public void Notify(string title, string text)
+    {
+        if (!OperatingSystem.IsMacOS()) return;
+        static string Quote(string v) => "\"" + v.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
+        try
+        {
+            Process.Start(new ProcessStartInfo("osascript")
+            {
+                ArgumentList = { "-e", $"display notification {Quote(text)} with title {Quote(title)}" },
+                UseShellExecute = false,
+            });
+        }
+        catch (Exception e) when (e is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+        }
+    }
 }

@@ -39,6 +39,12 @@ spirit of that promise (the person confirms) and changes how much they have to d
 9. **Every agent run writes a short decision trace** the person can read, and a fixed set of fake shoots with expected
    answers (evals) runs in CI, so changes that make the agent worse are caught.
 
+## Update, 27 Nov 2026
+
+The maintainer chose to always be asked for project names: the screen shows how many shoots were found and asks for
+each name (blank → date name). Countdown / Fully automatic, calendar and GPS naming are dropped. Item 7 is therefore
+reduced to *Ask* only.
+
 ## Open question
 
 Where the model runs: a small local model (offline, free, private; the AI.md plan) or the Claude API (better reasoning,

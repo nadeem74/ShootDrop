@@ -21,10 +21,10 @@
                 <Grid ColumnDefinitions="30,*" RowDefinitions="Auto,Auto,Auto">
                   <CheckBox Grid.RowSpan="2" IsChecked="{Binding Included}" VerticalAlignment="Top" />
                   <StackPanel Grid.Column="1" Spacing="1">
-                    <TextBlock Classes="name" Text="{Binding Time}" />
+                    <TextBlock Classes="name"><Run Text="{Binding Label}" /><Run Text=" · " /><Run Text="{Binding Time}" /></TextBlock>
                     <TextBlock Classes="muted" FontSize="12" Text="{Binding Detail}" />
                   </StackPanel>
-                  <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Name}" Margin="0,6,0,0" IsEnabled="{Binding Included}" />
+                  <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Name}" Watermark="{Binding Placeholder}" Margin="0,6,0,0" IsEnabled="{Binding Included}" />
                   <TextBlock Grid.Row="2" Grid.Column="1" Classes="muted" FontSize="11" Text="{Binding Source}" Margin="0,3,0,0"
                              TextWrapping="Wrap" IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </Grid>
@@ -57,7 +57,7 @@
       <Grid ColumnDefinitions="Auto,*">
         <Button Classes="link" Content="More options…" Command="{Binding MoreOptionsCommand}" />
         <TextBlock Grid.Column="1" Classes="muted" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"
-                   Text="Cards are only read · every file verified" />
+                   Text="Blank names use the date · cards are only read" />
       </Grid>
     </StackPanel>
   </ScrollViewer>
