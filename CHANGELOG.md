@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- Runs as a service: starts at login (on by default, asked during setup), waits in the menu bar and opens by itself
+  when a card goes in. If it ever crashes, macOS starts it again.
+- Problems are red: projects drive not connected, not enough space, unknown card, failed files. Copying can't start
+  while the drive is missing or too full, from the Ready window, More options or Review.
+- Steadier window: switching between the small Ready window and the full window keeps it in place and on screen, and
+  the full window remembers the size you gave it.
+- Timeline: tick boxes on each group and on each file ("Show files"). Untick a group or single clips to leave them on
+  the card; the group shows "40 of 46 files" and the footer counts what's left out. Works with or without splitting.
+- Resume: if a copy is cut short (card pulled out, power cut, app closed), ShootDrop shows "A copy didn't finish" with
+  **Resume** the next time. Resume copies only what's left, to the same places, removes half-written files first, and
+  the reports list every file of the whole copy. Files whose card isn't plugged in wait until it is.
+- Timeline: a slider sets how long a pause starts a new group (15 min to 4 h, remembered). A pause of exactly that
+  length now counts.
+- Timeline: the chosen day's clips appear as coloured groups, split wherever recording paused for an hour or more.
+  Tick "Copy each group into its own project", name each group, merge two groups, or start a new group at any clip.
+  No times to type.
+- Split a day into several projects by time. Type "yesterday till 1 pm into A, till 6 pm into B and after 6 pm into C"
+  in the smart box, or press "Split by breaks in recording". Review shows each project (renamable), the clips outside
+  every time, and each card's first and last clip time so a wrong camera clock is easy to spot. One report per project.
 - Windows code signing set up through SignPath Foundation (free for open source). Signing switches on once the project is approved; see CODE_SIGNING_POLICY.md.
 - Homebrew cask: `brew tap nadeem74/shootdrop https://github.com/nadeem74/ShootDrop`, `brew trust nadeem74/shootdrop`, `brew install --cask shootdrop`. Tested on a Mac mini (Apple Silicon, Homebrew 7).
 - Buy Me a Coffee link (README and GitHub's Sponsor button).

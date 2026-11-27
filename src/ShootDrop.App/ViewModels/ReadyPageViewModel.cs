@@ -32,6 +32,9 @@ public sealed partial class ReadyPageViewModel : PageViewModel
     [ObservableProperty] private string _status = "Looking for cards…";
     [ObservableProperty] private bool _hasStatus = true;
 
+    /// <summary>True when the status is a problem that stops the copy (shown in red).</summary>
+    [ObservableProperty] private bool _statusIsProblem;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CopyNowCommand))]
     private bool _canCopy;
@@ -131,6 +134,7 @@ public sealed partial class ReadyPageViewModel : PageViewModel
         {
             Status = e.Message;
             HasStatus = true;
+            StatusIsProblem = true;
             CanCopy = false;
             return;
         }
@@ -151,12 +155,14 @@ public sealed partial class ReadyPageViewModel : PageViewModel
             Cards.Add(new CardRow(card.Name, card.Profile?.Name ?? "Unknown device", stat, included, unrouted));
         }
 
-        CanCopy = plan.CanRun;
+        var storage = plan.Items.Count > 0 ? _ctx.CheckStorage(plan.TotalBytes) : null;
+        CanCopy = plan.CanRun && storage?.Blocks != true;
         ButtonText = plan.Items.Count > 0 ? $"Copy now · {Format.Bytes(plan.TotalBytes)}" : "Copy now";
-        (Status, HasStatus) = _ctx.Monitor.Cards.Count == 0 ? ("Insert a card to start. ShootDrop watches for new cards.", true)
-            : plan.Unrouted.Count > 0 ? ("An unknown card needs a folder. Open More options to choose one.", true)
-            : plan.Items.Count == 0 ? ("Nothing recorded on these dates. Pick another setup or More options.", true)
-            : ("", false);
+        (Status, HasStatus, StatusIsProblem) = _ctx.Monitor.Cards.Count == 0 ? ("Insert a card to start. ShootDrop watches for new cards.", true, false)
+            : plan.Unrouted.Count > 0 ? ("An unknown card needs a folder. Open More options to choose one.", true, true)
+            : storage?.Blocks == true ? (storage.Message, true, true)
+            : plan.Items.Count == 0 ? ("Nothing recorded on these dates. Pick another setup or More options.", true, false)
+            : ("", false, false);
     }
 
     private string NameOrDefault() => string.IsNullOrWhiteSpace(ProjectName) ? _ctx.DefaultProjectName : ProjectName;
@@ -167,7 +173,7 @@ public sealed partial class ReadyPageViewModel : PageViewModel
     private async Task CopyNowAsync()
     {
         var preview = await _ctx.PreviewAsync(CopyRequest.FromSetup(EffectiveSetup(), ProjectName.Trim()));
-        if (!preview.Plan.CanRun)
+        if (!preview.Plan.CanRun || _ctx.CheckStorage(preview.Plan.TotalBytes).Blocks)
         {
             await RefreshAsync();
             return;

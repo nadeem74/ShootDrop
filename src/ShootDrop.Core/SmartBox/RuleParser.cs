@@ -16,9 +16,11 @@ public sealed record ParsedRequest(
     bool AllCards,
     IReadOnlyList<string>? CardKeys,
     IReadOnlySet<FileKind>? Kinds,
-    string? ProjectName)
+    string? ProjectName,
+    IReadOnlyList<ProjectSplit>? Splits = null)
 {
-    public bool UnderstoodAnything => Date is not null || AllCards || CardKeys is not null || Kinds is not null || ProjectName is not null;
+    public bool UnderstoodAnything => Date is not null || AllCards || CardKeys is not null || Kinds is not null || ProjectName is not null
+                                      || Splits is not null;
 }
 
 /// <summary>
@@ -38,7 +40,10 @@ public static partial class RuleParser
 
     public static ParsedRequest Parse(string text, DateOnly today, IReadOnlyList<KnownCard> cards)
     {
-        var s = text.Trim();
+        // Time splits first ("till 1 pm into A, after 6 pm into B"); they are blanked out of the text
+        // so their times and project names don't confuse the rest.
+        var (splits, rest) = ParseSplits(text.Trim());
+        var s = rest;
         var lower = s.ToLowerInvariant();
 
         // Project name first, so words inside it ("for Kal Ho Na Ho shoot") don't count as filters.
@@ -46,7 +51,7 @@ public static partial class RuleParser
         var pm = ProjectRegex().Match(s);
         if (pm.Success)
         {
-            project = pm.Groups["name"].Value.Trim().Trim('"', '\'', '“', '”').Trim();
+            project = pm.Groups["name"].Value.Trim().TrimEnd(',', ';', '.').Trim().Trim('"', '\'', '“', '”').Trim();
             if (project.Length == 0) project = null;
             lower = lower[..pm.Index];
         }
@@ -72,7 +77,7 @@ public static partial class RuleParser
         if (PhotoRegex().IsMatch(lower)) (kinds ??= [FileKind.Video, FileKind.Audio]).Add(FileKind.Photo);
         if (ProxyRegex().IsMatch(lower)) (kinds ??= [FileKind.Video, FileKind.Audio]).Add(FileKind.Proxy);
 
-        return new ParsedRequest(date, all, keys, kinds, project);
+        return new ParsedRequest(date, all, keys, kinds, project, splits);
     }
 
     private static DateRule? ParseDate(string s, DateOnly today)

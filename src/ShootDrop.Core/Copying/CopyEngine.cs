@@ -30,10 +30,12 @@ public sealed class CopyEngine
 {
     public int BufferSize { get; init; } = 4 * 1024 * 1024;
 
+    /// <param name="onFileDone">Called after each file, in order (the copy journal uses it to remember progress).</param>
     public async Task<IReadOnlyList<CopyFileResult>> RunAsync(
         CopyPlan plan,
         IProgress<CopyProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Action<CopyFileResult>? onFileDone = null)
     {
         var results = new List<CopyFileResult>(plan.Items.Count);
         long bytesBefore = 0;
@@ -47,9 +49,11 @@ public sealed class CopyEngine
             var fileStart = bytesBefore;
             progress?.Report(new CopyProgress(number, plan.Items.Count, item.Source.Name, fileStart, total));
 
-            results.Add(await CopyOneAsync(item, done =>
+            var result = await CopyOneAsync(item, done =>
                 progress?.Report(new CopyProgress(number, plan.Items.Count, item.Source.Name, fileStart + done, total)),
-                cancellationToken).ConfigureAwait(false));
+                cancellationToken).ConfigureAwait(false);
+            results.Add(result);
+            onFileDone?.Invoke(result);
 
             bytesBefore += item.Source.Size;
             progress?.Report(new CopyProgress(number, plan.Items.Count, item.Source.Name, bytesBefore, total));
@@ -78,6 +82,9 @@ public sealed class CopyEngine
             }
 
             part = dest + ".part";
+            // A .part left by an interrupted copy (power cut, card pulled out) is ShootDrop's own half-written
+            // file in the project, never a finished copy: remove it and write the file again.
+            if (File.Exists(part)) File.Delete(part);
             ulong writtenHash;
             var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
             try

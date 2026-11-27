@@ -68,6 +68,9 @@ public sealed partial class WelcomePageViewModel : PageViewModel
         Structure = 3;
     }
 
+    /// <summary>Step 3: run in the menu bar from login, and open by itself when cards go in.</summary>
+    [ObservableProperty] private bool _runInBackground = true;
+
     private bool CanGetStarted() => !string.IsNullOrWhiteSpace(ProjectsRoot);
 
     [RelayCommand(CanExecute = nameof(CanGetStarted))]
@@ -96,7 +99,10 @@ public sealed partial class WelcomePageViewModel : PageViewModel
             s.Routing.ByKind[Core.Media.FileKind.Photo] = "Footage";
             s.Routing.ByKind[Core.Media.FileKind.Audio] = "Footage";
         }
+        s.Background.KeepRunningInMenuBar = true;
+        if (RunInBackground) s.Background.WhenCardsPluggedIn = Core.Background.CardArrivalAction.ShowReadyWindow;
         _ctx.Save();
+        _ctx.Background?.SetStartAtLogin(RunInBackground);
         _ctx.Monitor.Refresh();
         _ctx.Shell.GoReady();
     }

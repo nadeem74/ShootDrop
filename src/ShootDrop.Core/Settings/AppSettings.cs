@@ -21,6 +21,16 @@ public sealed class AppSettings
     /// <summary>Settings format version, for upgrading older settings.json files.</summary>
     public int Version { get; set; }
 
+    /// <summary>Size of the full window (More options, Review, Copying…) in points, as the user last left it; 0 = default.</summary>
+    public int WindowWidth { get; set; }
+
+    public int WindowHeight { get; set; }
+
+    /// <summary>Timeline: a pause in recording at least this long starts a new group (15 min to 4 hours).</summary>
+    public int TimelineBreakMinutes { get; set; } = 60;
+
+    public TimeSpan TimelineBreak => TimeSpan.FromMinutes(Math.Clamp(TimelineBreakMinutes, 15, 240));
+
     public const int CurrentVersion = 3;
 
     /// <summary>Brings settings saved by an older ShootDrop up to date.</summary>

@@ -106,7 +106,7 @@ public sealed partial class MainPageViewModel : PageViewModel
         _projectName = ctx.DefaultProjectName;
         _quickProjectName = ctx.DefaultProjectName;
         ApplySetupFields(setup);
-        foreach (var t in new[] { "all cards, yesterday for Sinhagad trip", "Pocket only, last 3 days", "audio only today", "kal ka sab footage with photos" })
+        foreach (var t in new[] { "all cards, yesterday for Sinhagad trip", "Pocket only, last 3 days", "audio only today", "kal ka sab footage with photos", "yesterday till 1 pm into A, till 6 pm into B" })
             Tries.Add(new TryChip(t, RunSmart));
         LoadSetupChips();
         _loading = false;
@@ -117,6 +117,9 @@ public sealed partial class MainPageViewModel : PageViewModel
     public ObservableCollection<TryChip> Tries { get; } = [];
     public ObservableCollection<string> QuickPills { get; } = [];
     public string[] DateOptions { get; } = ["Today", "Yesterday", "Last 3 days", "Pick dates"];
+    /// <summary>The footer message is a problem that stops the copy: shown in red.</summary>
+    [ObservableProperty] private bool _warnIsProblem;
+
     [ObservableProperty] private bool _noCards;
 
     // ---- Quick copy (Copy like last time) -------------------------------------------------
@@ -227,7 +230,36 @@ public sealed partial class MainPageViewModel : PageViewModel
 
     private string QuickName() => string.IsNullOrWhiteSpace(QuickProjectName) ? _ctx.DefaultProjectName : QuickProjectName.Trim();
 
-    private CopyRequest CurrentRequest(IReadOnlyList<string>? keys) => new(Name(), CurrentDate(), CurrentKinds(), keys);
+    private CopyRequest CurrentRequest(IReadOnlyList<string>? keys) => new(Name(), CurrentDate(), CurrentKinds(), keys, _splits, ExcludedFiles);
+
+    // ---- Split by time ---------------------------------------------------------------------
+    // "till 1 pm into A, till 6 pm into B" from the smart box, or "Split by breaks".
+
+    private IReadOnlyList<ProjectSplit>? _splits;
+    public ObservableCollection<string> SplitLines { get; } = [];
+    [ObservableProperty] private bool _hasSplits;
+    [ObservableProperty] private string _splitNote = "";
+
+    private void SetSplits(IReadOnlyList<ProjectSplit>? splits)
+    {
+        _splits = splits is { Count: > 0 } ? splits : null;
+        SplitLines.Clear();
+        if (_splits is not null)
+            foreach (var sp in _splits) SplitLines.Add($"{sp.ProjectName ?? Name()}  ·  {sp.Window.Describe()}");
+        HasSplits = _splits is not null;
+    }
+
+    [RelayCommand]
+    private void ClearSplit()
+    {
+        SetSplits(null);
+        SplitNote = "";
+        Recompute();
+    }
+
+    /// <summary>"Split by breaks in recording": turns on the timeline, which groups clips where recording paused.</summary>
+    [RelayCommand]
+    private void SplitByBreaks() => TimelineOn = true;
 
     /// <summary>Re-scans with the current choices and updates every card's numbers and the footer.</summary>
     internal async void Recompute()
@@ -246,10 +278,18 @@ public sealed partial class MainPageViewModel : PageViewModel
         {
             TotalLine = "Can't scan yet";
             WarnLine = e.Message;
+            WarnIsProblem = true;
             CanReview = false;
             return;
         }
         if (version != _version) return;
+
+        // The timeline follows the selected cards' clips; if it changed while it's in use, plan again with it.
+        if (UpdateTimeline(all.Cards.Where(cf => Cards.Any(c => c.IsSelected && c.Name == cf.Card.Name)).ToList()))
+        {
+            Recompute();
+            return;
+        }
 
         long bytes = 0;
         int files = 0, cards = 0;
@@ -270,11 +310,22 @@ public sealed partial class MainPageViewModel : PageViewModel
             bytes += items.Sum(i => i.Source.Size);
         }
 
+        var projects = all.Plan.IsSplit ? all.Plan.AllParts.Count(p => p.Items.Count > 0) : 1;
         TotalLine = files > 0 ? $"{cards} {(cards == 1 ? "card" : "cards")} · {Format.Files(files)} · {Format.Bytes(bytes)}"
+                                + (projects > 1 ? $" · {projects} projects" : "")
             : "Nothing to copy with these choices";
+        var outside = all.Plan.UnassignedFiles.Count;
+        var leftOut = all.Cards.Where(cf => Cards.Any(c => c.IsSelected && c.Name == cf.Card.Name))
+            .Sum(cf => cf.Files.Count(f => _excluded.Contains(f.Path)));
+        var storage = files > 0 ? _ctx.CheckStorage(bytes) : null;
+        WarnIsProblem = blocked || storage?.Blocks == true;
         WarnLine = blocked ? "Choose a folder for the unknown card before you continue."
+            : storage?.Blocks == true ? storage.Message
+            : leftOut > 0 && outside > 0 ? $"{Format.Files(leftOut)} unticked and {Format.Files(outside)} outside the chosen times won't be copied."
+            : leftOut > 0 ? $"{Format.Files(leftOut)} unticked on the timeline won't be copied."
+            : outside > 0 ? $"{Format.Files(outside)} outside the chosen times won't be copied."
             : "Nothing is overwritten. Every file is checked after copying.";
-        CanReview = files > 0 && !blocked && CurrentKinds().Count > 0;
+        CanReview = files > 0 && !blocked && storage?.Blocks != true && CurrentKinds().Count > 0;
         await RefreshQuickAsync();
     }
 
@@ -289,8 +340,9 @@ public sealed partial class MainPageViewModel : PageViewModel
         {
             var p = await _ctx.PreviewAsync(CopyRequest.FromSetup(setup, QuickName()));
             QuickPills.Add(p.Plan.Items.Count > 0 ? $"{Format.Files(p.Plan.Items.Count)} · {Format.Bytes(p.Plan.TotalBytes)}" : "Nothing to copy");
-            QuickCanCopy = p.Plan.CanRun;
-            QuickButton = p.Plan.Items.Count > 0 ? "Copy now" : "Nothing to copy";
+            var quickStorage = p.Plan.Items.Count > 0 ? _ctx.CheckStorage(p.Plan.TotalBytes) : null;
+            QuickCanCopy = p.Plan.CanRun && quickStorage?.Blocks != true;
+            QuickButton = quickStorage?.Blocks == true ? "Can't copy" : p.Plan.Items.Count > 0 ? "Copy now" : "Nothing to copy";
         }
         catch (Exception e) when (e is InvalidOperationException or ArgumentException or IOException)
         {
@@ -342,9 +394,21 @@ public sealed partial class MainPageViewModel : PageViewModel
         if (r.Kinds is { } k) SetKinds(k);
         if (r.ProjectName is { } name) ProjectName = name;
         _loading = false;
+        if (r.Splits is not null)
+        {
+            TimelineOn = false; // typed times win over the timeline
+            SetSplits(r.Splits);
+        }
+        else if (!TimelineOn)
+        {
+            SetSplits(null);
+        }
+        SplitNote = "";
 
         var cardsText = Cards.All(c => c.IsSelected) ? "All cards" : string.Join(", ", Cards.Where(c => c.IsSelected).Select(c => c.Name));
-        Understood = $"{(cardsText.Length == 0 ? "No cards" : cardsText)} · {CurrentDate().Describe(_ctx.Today)} · {Format.Kinds(CurrentKinds())} · Project “{Name()}”";
+        var projectText = _splits is null ? $"Project “{Name()}”"
+            : string.Join(", ", _splits.Select(sp => $"“{sp.ProjectName ?? Name()}” {sp.Window.Describe()}"));
+        Understood = $"{(cardsText.Length == 0 ? "No cards" : cardsText)} · {CurrentDate().Describe(_ctx.Today)} · {Format.Kinds(CurrentKinds())} · {projectText}";
         ShowUnderstood = true;
         Recompute();
     }

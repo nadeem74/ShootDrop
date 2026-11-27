@@ -203,8 +203,108 @@
                 <Button Classes="link" Content="Edit folder structure" Command="{Binding EditFoldersCommand}" FontSize="13" />
               </StackPanel>
             </StackPanel>
+
+            <StackPanel Spacing="6" IsVisible="{Binding ShowTypedSplits}">
+              <TextBlock Classes="label" Text="Split into projects by time" Margin="0" />
+              <Border Classes="card" Padding="10,8">
+                <StackPanel Spacing="4">
+                  <ItemsControl ItemsSource="{Binding SplitLines}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="sys:String">
+                        <TextBlock Text="{Binding}" FontSize="13" Margin="0,2" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <Button Classes="link" Content="Don't split" Command="{Binding ClearSplitCommand}" FontSize="13" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
           </StackPanel>
         </Grid>
+
+        <!-- 4. Timeline: the day's clips grouped where recording paused, one project per group -->
+        <Border Classes="band" BorderThickness="0,1,0,0">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="2">
+                <TextBlock Classes="h2" Text="Timeline" />
+                <TextBlock Classes="muted" FontSize="13" Text="{Binding TimelineNote}" TextWrapping="Wrap" />
+              </StackPanel>
+              <CheckBox Grid.Column="1" IsChecked="{Binding TimelineOn}" IsEnabled="{Binding HasTimeline}"
+                        Content="Copy each group into its own project" VerticalAlignment="Top" />
+            </Grid>
+
+            <!-- How long a pause must be to start a new group -->
+            <Grid ColumnDefinitions="Auto,260,Auto" IsVisible="{Binding HasTimelineClips}">
+              <TextBlock Classes="muted" FontSize="13" Text="New group after a pause of" VerticalAlignment="Center" Margin="0,0,10,0" />
+              <Slider Grid.Column="1" Minimum="15" Maximum="240" TickFrequency="15" IsSnapToTickEnabled="True"
+                      Value="{Binding BreakMinutes}" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="2" Text="{Binding BreakText}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0" />
+            </Grid>
+
+            <!-- The bar: one coloured block per group, placed by time -->
+            <StackPanel Spacing="4" IsVisible="{Binding HasTimeline}" HorizontalAlignment="Left">
+              <Border Width="{x:Static vm:MainPageViewModel.TimelineWidth}" Height="22" CornerRadius="11" Background="#ECEDF0" ClipToBounds="True">
+                <ItemsControl ItemsSource="{Binding Sessions}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><Panel /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TimelineSession">
+                      <Border Background="{Binding Color}" Width="{Binding BarWidth}" Margin="{Binding BarMargin}"
+                              HorizontalAlignment="Left" CornerRadius="11" Height="22" ToolTip.Tip="{Binding TimeText}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Grid Width="{x:Static vm:MainPageViewModel.TimelineWidth}" ColumnDefinitions="*,*">
+                <TextBlock Classes="muted" FontSize="12" Text="{Binding TimelineStart}" />
+                <TextBlock Grid.Column="1" Classes="muted" FontSize="12" Text="{Binding TimelineEnd}" HorizontalAlignment="Right" />
+              </Grid>
+            </StackPanel>
+
+            <!-- The groups: name, merge, or show clips and start a new group at any clip -->
+            <ItemsControl ItemsSource="{Binding Sessions}" IsVisible="{Binding HasTimeline}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:TimelineSession">
+                  <Border Classes="card" Padding="12,10" Margin="0,0,0,8">
+                    <StackPanel Spacing="8">
+                      <Grid ColumnDefinitions="Auto,Auto,*,220,230">
+                        <CheckBox IsChecked="{Binding Included}" VerticalAlignment="Center" Margin="0,0,6,0"
+                                  ToolTip.Tip="Copy this group. Untick to leave all its files on the card." />
+                        <Ellipse Grid.Column="1" Width="12" Height="12" Fill="{Binding Color}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <StackPanel Grid.Column="2" Spacing="2">
+                          <TextBlock Text="{Binding TimeText}" FontWeight="SemiBold" />
+                          <TextBlock Classes="muted" FontSize="12" Text="{Binding Summary}" />
+                        </StackPanel>
+                        <TextBox Grid.Column="3" Text="{Binding Name}" Watermark="Project name" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right">
+                          <Button Classes="link" Content="{Binding ShowClipsText}" Command="{Binding ToggleClipsCommand}" FontSize="13" />
+                          <Button Classes="link" Content="Merge with next" Command="{Binding MergeNextCommand}" FontSize="13" IsVisible="{Binding CanMergeNext}" />
+                        </StackPanel>
+                      </Grid>
+                      <ItemsControl ItemsSource="{Binding Clips}" IsVisible="{Binding ShowClips}" Margin="0,0,0,0">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:TimelineClipItem">
+                            <Grid ColumnDefinitions="Auto,90,*,90,140,170" MinHeight="26">
+                              <CheckBox IsChecked="{Binding Included}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                              <TextBlock Grid.Column="1" Text="{Binding Time}" FontSize="13" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="2" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="3" Classes="muted" Text="{Binding Size}" FontSize="12" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="4" Classes="muted" Text="{Binding Card}" FontSize="12" VerticalAlignment="Center" />
+                              <Button Grid.Column="5" Classes="link" Content="Start a new group here" FontSize="12" VerticalAlignment="Center"
+                                      HorizontalAlignment="Right" Command="{Binding SplitHereCommand}" IsVisible="{Binding CanSplit}" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
 
@@ -213,7 +313,8 @@
       <Grid ColumnDefinitions="*,Auto,Auto,Auto">
         <StackPanel VerticalAlignment="Center">
           <TextBlock Text="{Binding TotalLine}" FontSize="15" FontWeight="SemiBold" />
-          <TextBlock Classes="muted" Text="{Binding WarnLine}" />
+          <TextBlock Classes="muted" Text="{Binding WarnLine}" IsVisible="{Binding !WarnIsProblem}" />
+          <TextBlock Classes="problem" FontSize="13" Text="{Binding WarnLine, StringFormat='⚠  {0}'}" IsVisible="{Binding WarnIsProblem}" />
         </StackPanel>
         <Button Grid.Column="1" Classes="link" Content="Settings" Command="{Binding OpenSettingsCommand}" Margin="0,0,12,0" />
         <Button Grid.Column="2" Classes="plain" Content="Ready window" Command="{Binding BackToReadyCommand}" Margin="0,0,10,0" />

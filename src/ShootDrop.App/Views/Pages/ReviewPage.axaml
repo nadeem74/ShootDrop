@@ -13,8 +13,48 @@
           <TextBlock Classes="muted" FontSize="14" Text="{Binding Subtitle}" />
         </StackPanel>
 
+        <Border Classes="problem" IsVisible="{Binding HasProblem}">
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Classes="problem" Text="⚠" FontSize="16" Margin="0,0,10,0" />
+            <TextBlock Grid.Column="1" Classes="problem" Text="{Binding Problem}" FontSize="14" />
+          </Grid>
+        </Border>
+
         <Grid ColumnDefinitions="*,320">
           <StackPanel Spacing="18" Margin="0,0,20,0">
+            <StackPanel IsVisible="{Binding IsSplit}">
+              <TextBlock Classes="label" Text="Projects, by recording time" />
+              <Border Classes="card" Padding="0">
+                <StackPanel>
+                  <Grid ColumnDefinitions="2*,2*,80,100" Margin="14,10">
+                    <TextBlock Classes="label" Margin="0" Text="Project (you can rename)" />
+                    <TextBlock Grid.Column="1" Classes="label" Margin="0" Text="Clips that stopped" />
+                    <TextBlock Grid.Column="2" Classes="label" Margin="0" Text="Files" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="3" Classes="label" Margin="0" Text="Size" HorizontalAlignment="Right" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Parts}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PartRow">
+                        <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,8">
+                          <Grid ColumnDefinitions="2*,2*,80,100">
+                            <TextBox Text="{Binding Name}" Margin="0,0,12,0" />
+                            <TextBlock Grid.Column="1" Text="{Binding When}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="2" Text="{Binding Files}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="3" Text="{Binding Size}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,1,0,0" Padding="14,10" IsVisible="{Binding HasUnassigned}">
+                    <TextBlock Text="{Binding UnassignedText}" Foreground="{StaticResource Warn}" TextWrapping="Wrap" FontSize="13" />
+                  </Border>
+                </StackPanel>
+              </Border>
+              <TextBlock Text="{Binding RenameError}" Foreground="{StaticResource Warn}" FontSize="13" Margin="0,6,0,0"
+                         IsVisible="{Binding RenameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+
             <StackPanel>
               <TextBlock Classes="label" Text="What goes where" />
               <Border Classes="card" Padding="0">
@@ -55,10 +95,13 @@
               <Border Classes="card" Padding="14,6">
                 <ItemsControl ItemsSource="{Binding Checks}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="sys:String">
+                    <DataTemplate x:DataType="vm:CheckLine">
                       <Grid ColumnDefinitions="26,*" Margin="0,7">
-                        <TextBlock Classes="good" Text="✓" />
-                        <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" />
+                        <TextBlock Classes="good" Text="✓" IsVisible="{Binding Ok}" />
+                        <TextBlock Classes="problem" Text="✕" IsVisible="{Binding Problem}" />
+                        <TextBlock Classes="muted" Text="•" IsVisible="{Binding Note}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" IsVisible="{Binding !Problem}" />
+                        <TextBlock Grid.Column="1" Classes="problem" Text="{Binding Text}" IsVisible="{Binding Problem}" />
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -69,7 +112,7 @@
 
           <StackPanel Grid.Column="1" Spacing="18">
             <StackPanel>
-              <TextBlock Classes="label" Text="Project folder" />
+              <TextBlock Classes="label" Text="{Binding TreeLabel}" />
               <Border Classes="card">
                 <ItemsControl ItemsSource="{Binding Tree}">
                   <ItemsControl.ItemTemplate>

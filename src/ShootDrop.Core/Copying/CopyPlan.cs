@@ -1,17 +1,52 @@
 using ShootDrop.Core.Cards;
+using ShootDrop.Core.Media;
 using ShootDrop.Core.Projects;
 
 namespace ShootDrop.Core.Copying;
 
 public sealed record CopyItem(SourceFile Source, string Destination, string CardName, string Folder);
 
-/// <param name="ProjectRoot">Full path of the project folder.</param>
-/// <param name="Items">Files to copy, in order.</param>
+/// <summary>One project of a copy. A normal copy has one part; a time split ("till 1 pm into A…") has several.</summary>
+/// <param name="Name">Project folder name.</param>
+/// <param name="Window">Time of day this part takes, or null for a normal (unsplit) copy.</param>
+public sealed record CopyPart(string Name, string ProjectRoot, TimeWindow? Window, IReadOnlyList<CopyItem> Items)
+{
+    public long TotalBytes => Items.Sum(i => i.Source.Size);
+}
+
+/// <summary>A clip on the chosen dates whose time is outside every part of a split. Shown, never copied.</summary>
+public sealed record UnassignedFile(string CardName, SourceFile Source);
+
+/// <param name="ProjectRoot">Full path of the project folder (the first project when the copy is split).</param>
+/// <param name="Items">Files to copy, in order, across all parts.</param>
 /// <param name="Unrouted">Cards with files but no destination yet (unknown cards). Copying is blocked until routed.</param>
-public sealed record CopyPlan(string ProjectRoot, IReadOnlyList<CopyItem> Items, IReadOnlyList<DetectedCard> Unrouted)
+/// <param name="Parts">Projects of a time split; null for a normal one-project copy.</param>
+/// <param name="Unassigned">Clips outside every time window of a split.</param>
+public sealed record CopyPlan(
+    string ProjectRoot,
+    IReadOnlyList<CopyItem> Items,
+    IReadOnlyList<DetectedCard> Unrouted,
+    IReadOnlyList<CopyPart>? Parts = null,
+    IReadOnlyList<UnassignedFile>? Unassigned = null)
 {
     public long TotalBytes => Items.Sum(i => i.Source.Size);
     public bool CanRun => Items.Count > 0 && Unrouted.Count == 0;
+    public bool IsSplit => Parts is not null;
+
+    /// <summary>Every project this copy writes to; one part for a normal copy.</summary>
+    public IReadOnlyList<CopyPart> AllParts => Parts ?? [new CopyPart(Path.GetFileName(ProjectRoot), ProjectRoot, null, Items)];
+
+    public IReadOnlyList<UnassignedFile> UnassignedFiles => Unassigned ?? [];
+
+    /// <summary>Puts several one-project plans together into one split plan the copy engine can run in one go.</summary>
+    public static CopyPlan Combine(IReadOnlyList<(TimeWindow Window, CopyPlan Plan)> parts, IReadOnlyList<UnassignedFile> unassigned)
+    {
+        if (parts.Count == 0) throw new ArgumentException("A split needs at least one part.", nameof(parts));
+        var items = parts.SelectMany(p => p.Plan.Items).ToList();
+        var unrouted = parts.SelectMany(p => p.Plan.Unrouted).Distinct().ToList();
+        var copyParts = parts.Select(p => new CopyPart(Path.GetFileName(p.Plan.ProjectRoot), p.Plan.ProjectRoot, p.Window, p.Plan.Items)).ToList();
+        return new CopyPlan(parts[0].Plan.ProjectRoot, items, unrouted, copyParts, unassigned);
+    }
 }
 
 public sealed record CardFiles(DetectedCard Card, IReadOnlyList<SourceFile> Files);

@@ -48,3 +48,13 @@ Testing a copy without real cards: `dotnet run --project src/ShootDrop.Cli -- pl
 ## Be kind
 
 We follow a simple [Code of Conduct](CODE_OF_CONDUCT.md). Be respectful, assume good intent, help newcomers.
+
+## Trying the app with fake cards
+
+Never test against real camera cards you care about. Set `SHOOTDROP_TEST_DIR` to an empty folder and put one folder
+per "card" in its `cards` subfolder (for example `cards/POCKET/DCIM/DJI_001/DJI_0001.MP4`). ShootDrop then keeps its
+settings in that folder and treats each card folder as plugged in. Set file times with `touch -t` to try dates and the timeline.
+
+```bash
+SHOOTDROP_TEST_DIR=~/shootdrop-test dotnet run --project src/ShootDrop.App
+```
