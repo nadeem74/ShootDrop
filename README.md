@@ -41,13 +41,25 @@ You shot all day on a DJI Pocket, a Lumix and a DJI Mic. Now it's 11 pm and you 
 3. drag videos into `Video/…` and audio into `Audio/…`,
 4. hope nothing got corrupted on the way.
 
-**ShootDrop does all four in one click.** It knows which card is which, picks only the days you want,
-copies into *your* folder structure, and verifies every file with a checksum. Your cards are only ever read.
+**ShootDrop does all four for you.** Put the cards in and it opens by itself: *"4 shoots found. Name each project."*
+Type the names (or leave them blank for a date name), press **Start**, and walk away. It knows which card is which,
+splits the day into shoots by the breaks in recording, copies into *your* folder structure and verifies every file
+with a checksum. Your cards are only ever read.
 
 > Started as a small bash script on my Mac. Turned into a proper app because copying footage
 > by hand every night is how clips get lost.
 
 ## What it looks like
+
+<table>
+<tr>
+<td width="38%" valign="top"><img src="docs/images/screens/autopilot.jpg" alt="Autopilot: 4 shoots found, name each project" width="100%"><br><b>Cards in → this opens by itself</b><br><sub>New shoots found from the breaks in recording, per card. Name each project or leave it blank for a date name. One Start.</sub></td>
+<td width="62%" valign="top"><img src="docs/images/screens/done.jpg" alt="Done: 14 of 14 files copied and verified into four projects" width="100%"><br><b>Done, all verified</b><br><sub>Four projects from one day, every file re-read and matched. A Mac notification tells you when it's finished.</sub></td>
+</tr>
+</table>
+<sub>Real screenshots of v0.4 (demo with fake cards).</sub>
+
+### The design it started from
 
 <p align="center"><img src="docs/images/wireframes/02-main.png" alt="ShootDrop main window: cards, dates, file types and the smart box" width="100%"></p>
 <p align="center"><b>Main window</b>: pick cards, dates and file types, or type what you want in the smart box.</p>
@@ -77,9 +89,9 @@ copies into *your* folder structure, and verifies every file with a checksum. Yo
 
 | If you… | ShootDrop gives you… |
 | --- | --- |
-| post Reels, Shorts and vlogs from 2–4 devices | one button: **Copy like last time** |
+| post Reels, Shorts and vlogs from 2–4 devices | cards in, name the shoots, **Start**. That's it |
 | shoot weddings, events or podcasts | per-card routing, date ranges, a copy report in every project |
-| just want the family trip off the camera without thinking | it finds the card, you press Copy, done |
+| just want the family trip off the camera without thinking | it opens when the card goes in, you press Start, done |
 | are a developer | a clean .NET 10 codebase with tests, ADRs and a CLI to learn from or extend |
 
 ## Why you can trust it with footage
@@ -94,19 +106,36 @@ Safety rules are written into the architecture ([ADR-003](docs/adr/0003-architec
 
 ## Features
 
-- **Knows your gear.** Detects DJI Osmo Pocket, Panasonic Lumix and DJI Mic out of the box. Adding a camera is one small [JSON file](#add-your-camera).
-- **Your folders, your way.** Use your own template folder, or presets like `Audio / Video/<camera> / Images` or A-roll / B-roll.
-- **Smart routing.** Video from each camera goes to its own folder. Audio tracks (like the DJI Pocket's `.AAC` mic files) go to `Audio/`. Proxies (`.LRF`) are skipped unless you want them.
-- **Pick the day.** Today, yesterday, the last N days, or any date range.
-- **One-click repeat.** Save setups like "Shoot day" or "Pocket vlog". The app opens on a small **Ready to copy** window with one **Copy now** button.
-- **Talk to it.** Type `all cards, yesterday for Sinhagad trip` or `kal ka sab footage with photos` (yes, Hinglish works).
-- **Lives in your menu bar.** Close the window and ShootDrop keeps waiting quietly, using almost nothing. Copy now right from the menu.
-- **Pops up when you plug in a card** (or copies automatically, or does nothing: your choice).
-- **Global shortcut**, ⌃⌥⌘C by default, change it to anything you like. **Start at login** if you want.
-- **Add your own cameras in the app.** Plug in the card, click *Fill in from this card*, save. No config files.
-- **Drag and drop folders** to reshape your project, and drop a camera onto a folder to send its files there.
-- Open in Finder and Eject cards when the copy finishes.
-- **CLI included.** Same engine, scriptable: `shootdrop copy --date yesterday --name "Goa trip"`.
+**Put the cards in, press Start** *(new in v0.4)*
+- **Opens by itself when a card goes in** and shows only what's new: per card it remembers what was already copied.
+- **Finds the shoots for you.** Clips are grouped wherever recording paused (1 hour by default, slider from 15 min to 4 h), so one day becomes "Sinhagad Fort, Lunch, Cafe review, Night walk".
+- **Asks you for the names.** One box per shoot; a blank box gets the date and time of its first clip, like `2026-11-27 0915`.
+- **Name them from one sentence:** type `morning Sinhagad Fort, Lunch at Vohuman, Cafe review, Night walk` (Hinglish too: `subah Fort aur phir cafe`). Optional: let Claude suggest names; it may only use names from your note or your existing projects.
+- **Notification when it's done**, with how many files were verified.
+
+**Never lose a clip**
+- **Verified copies.** Every file is re-read and its xxHash64 must match the card. Cards are opened read-only, never overwritten, never formatted.
+- **Resume after a cut.** Card pulled out, power cut, app closed? Next time ShootDrop offers **Resume** and copies only what's left.
+- **Red when something's wrong.** Projects drive not connected, not enough space, unknown card: shown in red, and copying can't start.
+- **Ignores drives that aren't cards**, like your backup disk.
+
+**Split a day into projects**
+- **Timeline:** the day's clips as coloured groups. Tick or untick whole groups or single clips, rename, merge, or start a new group at any clip.
+- **Or just type it:** `yesterday till 1 pm into Fort, till 6 pm into Cafe and after 6 pm into Night walk`.
+- Review shows each project, the clips outside every time, and each card's first and last clip time, so a wrong camera clock is easy to spot. One report per project.
+
+**Fits how you work**
+- **Knows your gear.** DJI Osmo Pocket, Panasonic Lumix and DJI Mic out of the box. Add any camera in the app: plug in its card, click *Fill in from this card*, save.
+- **Your folders, your way.** Your own template folder (e.g. with a DaVinci project inside), or presets like `Audio / Video/<camera> / Images` or A-roll / B-roll. Drag and drop to reshape, drop a camera onto a folder to send its files there.
+- **Smart routing.** Video per camera, audio (like the Pocket's `.AAC` mic files) to `Audio/`, proxies (`.LRF`) skipped unless you want them.
+- **Pick the day** (today, yesterday, last N days, any range), save setups, or **Copy like last time** in one click.
+- **Runs as a service.** Starts at login, waits in the menu bar using almost nothing, restarts itself if it ever crashes. Global shortcut ⌃⌥⌘C (change it to anything).
+- Open in Finder and eject the cards when the copy finishes. The window keeps its size and place.
+
+**For developers and AI apps**
+- **CLI on the same engine:** `shootdrop auto` (the autopilot in a terminal), `shootdrop copy --date yesterday --name "Goa trip"`.
+- **MCP server:** `shootdrop mcp` lets AI apps like Claude Desktop list cards, find new shoots, check space and copy.
+- **Learn how it was built:** [docs/AGENTS-GUIDE.md](docs/AGENTS-GUIDE.md) walks through the autopilot and the agent step by step.
 
 ## AI: where it is and where it's going 🤖
 
@@ -218,6 +247,8 @@ shootdrop cards                                             # what's plugged in
 shootdrop plan --date yesterday --name "Sinhagad trip"      # dry run, copies nothing
 shootdrop copy --date yesterday --name "Sinhagad trip"      # the real thing
 shootdrop ask  "Pocket only, last 3 days"                   # test the smart box
+shootdrop auto --note "morning Fort, evening Cafe review"   # autopilot: new shoots, named, one question
+shootdrop mcp                                               # tools for AI apps (Claude Desktop etc.)
 ```
 
 ## Add your camera
