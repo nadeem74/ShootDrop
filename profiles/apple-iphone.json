@@ -1,0 +1,8 @@
+{
+  "id": "apple-iphone",
+  "name": "iPhone (over USB)",
+  "defaultFolder": "Video/iPhone",
+  "match": {
+    "markerPaths": ["SHOOTDROP_IPHONE"]
+  }
+}

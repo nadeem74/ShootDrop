@@ -38,7 +38,7 @@ Still to do:
 - Multi-day copies: option for one project per day
 - Copy to two drives at once (main + backup)
 - MHL checksum reports, the format film crews use
-- Import from iPhone over USB (Apple Image Capture) or from an AirDrop inbox
+- Import from an AirDrop inbox (iPhone over USB: done in v0.4)
 - Upgrade to Avalonia 12
 
 ## Not planned

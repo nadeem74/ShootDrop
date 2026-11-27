@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- iPhone over USB (macOS): plug in and unlock your iPhone and its new videos come up on the autopilot screen like a
+  card, grouped into shoots by recording time, copied into `Video/iPhone`. Read-only on the phone; each video's size is
+  checked against the phone, then the copy into the project is verified by checksum. Also in the menu bar: "Copy from iPhone (USB)…".
 - Autopilot (ADR-008): put the cards in and one screen opens with the new recording sessions in time order, each named
   by the date and time of its first clip (`2026-11-27 0915`), and the free space. Untick or rename, press **Start
   copying** (or Return) and the rest happens by itself. Next time only clips recorded since are offered. This is now

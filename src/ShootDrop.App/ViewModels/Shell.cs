@@ -31,6 +31,9 @@ public sealed class ShootDropContext
     public CardMonitor Monitor { get; }
     public ShellViewModel Shell { get; set; } = null!;
 
+    /// <summary>iPhone import over USB (macOS); null in design-time previews.</summary>
+    public PhoneService? Phone { get; set; }
+
     /// <summary>Menu bar, shortcut and login item; null in design-time previews.</summary>
     public BackgroundController? Background { get; set; }
 

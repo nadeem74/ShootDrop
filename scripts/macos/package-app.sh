@@ -43,6 +43,17 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
+# iPhone import helper (Swift, ImageCaptureCore). Optional: without it ShootDrop simply doesn't offer iPhone import.
+if command -v swiftc >/dev/null 2>&1; then
+  T="$(mktemp -d)"; SW="$ROOT/scripts/macos/iphone/ShootDropIPhone.swift"
+  if swiftc -O -target arm64-apple-macos12 -o "$T/a" "$SW" && swiftc -O -target x86_64-apple-macos12 -o "$T/x" "$SW"; then
+    lipo -create "$T/a" "$T/x" -output "$APP/Contents/MacOS/shootdrop-iphone"
+  else
+    echo "warning: iPhone helper didn't build; iPhone import will be off"
+  fi
+  rm -rf "$T"
+fi
+
 # Ad-hoc signature so Apple Silicon will launch it (not notarised; see README).
 codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || true
 echo "Built $APP ($VERSION)"

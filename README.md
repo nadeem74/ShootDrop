@@ -113,6 +113,11 @@ Safety rules are written into the architecture ([ADR-003](docs/adr/0003-architec
 - **Name them from one sentence:** type `morning Sinhagad Fort, Lunch at Vohuman, Cafe review, Night walk` (Hinglish too: `subah Fort aur phir cafe`). Optional: let Claude suggest names; it may only use names from your note or your existing projects.
 - **Notification when it's done**, with how many files were verified.
 
+**iPhone too, over the cable** *(new, macOS)*
+- **Plug in your iPhone and unlock it.** ShootDrop reads its new videos (with Apple's own Image Capture system), groups them into shoots by when they were recorded and opens the same "Name each project" screen. They land in `Video/iPhone`.
+- Only new videos: the first time just the latest day, after that only what was recorded since. Files with the same name (`IMG_1352.MOV` from two years) are told apart.
+- The phone is only read, never changed. An iPhone can't give a checksum, so ShootDrop checks each video's size against the phone, then verifies the copy into your project by checksum as usual.
+
 **Never lose a clip**
 - **Verified copies.** Every file is re-read and its xxHash64 must match the card. Cards are opened read-only, never overwritten, never formatted.
 - **Resume after a cut.** Card pulled out, power cut, app closed? Next time ShootDrop offers **Resume** and copies only what's left.

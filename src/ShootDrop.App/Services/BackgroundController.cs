@@ -322,6 +322,7 @@ public sealed class BackgroundController : IDisposable
         else
         {
             menu.Add(Item("Copy new recordings…", OpenAuto));
+            if (_ctx.Phone?.Available == true) menu.Add(Item("Copy from iPhone (USB)…", () => _ = _ctx.Phone.ImportAsync()));
             var plan = _menuPreview?.Plan;
             var setup = MenuSetup();
             var copyNow = Item(plan is { CanRun: true }
