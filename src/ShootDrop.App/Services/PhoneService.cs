@@ -27,7 +27,7 @@ public sealed class PhoneService(ShootDropContext ctx, string settingsDirectory)
         // An iPhone already plugged in when ShootDrop starts (e.g. at login) isn't "new": no pop-up for it,
         // the same rule as for cards. Use the menu bar's "Copy from iPhone" for that.
         _startedUtc = DateTime.UtcNow;
-        _watch = _helper?.Watch((added, _) =>
+        _watch = _helper?.Watch((added, device) =>
         {
             if (added && DateTime.UtcNow - _startedUtc > TimeSpan.FromSeconds(10)) Dispatcher.UIThread.Post(() => _ = ImportAsync());
         });
