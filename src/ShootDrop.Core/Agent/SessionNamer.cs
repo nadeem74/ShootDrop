@@ -86,13 +86,26 @@ public static partial class SessionNamer
     [GeneratedRegex(@"\s*(?:,|;|\n|\bthen\b|\band then\b|\bafter that\b|\bphir\b|\baur\b|\baur phir\b)\s*", RegexOptions.IgnoreCase)]
     private static partial Regex Separators();
 
-    [GeneratedRegex(@"^(?:in the |the |at |at the )?(?:early |late )?(?:morning|afternoon|evening|night|noon|subah|dopahar|shaam|sham|raat)\s*(?:[:\-–]\s*|at\s+|me\s+|mein\s+)?", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^(?:in the |the |at |at the )?(?:early |late )?(?<word>morning|afternoon|evening|night|noon|subah|dopahar|shaam|sham|raat)(?<sep>\s*[:\-–]\s*|\s+(?:at|me|mein)\s+|\s+)", RegexOptions.IgnoreCase)]
     private static partial Regex TimeWords();
+
+    /// <summary>
+    /// "morning Sinhagad Fort" → "Sinhagad Fort", but "Night walk" stays "Night walk": a time word is only a prefix when
+    /// it is followed by ':' / '-' / "at" / "mein", or written in lower case before a capitalised name.
+    /// </summary>
+    private static string WithoutTimeWord(string piece)
+    {
+        var m = TimeWords().Match(piece);
+        if (!m.Success || m.Length >= piece.Length) return piece;
+        var explicitSep = m.Groups["sep"].Value.Trim().Length > 0;
+        var lowerThenName = char.IsLower(m.Groups["word"].Value[0]) && char.IsUpper(piece[m.Length]);
+        return explicitSep || lowerThenName ? piece[m.Length..] : piece;
+    }
 
     /// <summary>The note split into project names, in order.</summary>
     public static IReadOnlyList<string> Pieces(string note) =>
         Separators().Split(note ?? "")
-            .Select(p => TimeWords().Replace(p.Trim(), "").Trim(' ', '.', '-', '–'))
+            .Select(p => WithoutTimeWord(p.Trim()).Trim(' ', '.', '-', '–'))
             .Where(p => p.Length > 0)
             .ToList();
 
