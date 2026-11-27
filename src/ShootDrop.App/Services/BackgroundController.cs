@@ -136,6 +136,9 @@ public sealed class BackgroundController : IDisposable
             case ArrivalDecision.ShowReadyWindow:
                 OpenReady();
                 break;
+            case ArrivalDecision.ShowAutopilot:
+                OpenAuto();
+                break;
             case ArrivalDecision.StartCopy:
                 _ = AutoCopyAsync();
                 break;
@@ -164,6 +167,15 @@ public sealed class BackgroundController : IDisposable
         {
             OpenReady();
         }
+    }
+
+    /// <summary>Show the autopilot screen (FR-26), unless the user is in the middle of something else in the window.</summary>
+    public void OpenAuto()
+    {
+        var current = _ctx.Shell.Current;
+        var busy = _window.IsVisible && current is SettingsPageViewModel or ReviewPageViewModel or CopyingPageViewModel or WelcomePageViewModel;
+        if (!busy) _ctx.Shell.GoAuto();
+        ShowWindow();
     }
 
     /// <summary>Show Ready to copy, unless the user is in the middle of something else in the window.</summary>
@@ -309,6 +321,7 @@ public sealed class BackgroundController : IDisposable
         }
         else
         {
+            menu.Add(Item("Copy new recordings…", OpenAuto));
             var plan = _menuPreview?.Plan;
             var setup = MenuSetup();
             var copyNow = Item(plan is { CanRun: true }
@@ -333,6 +346,7 @@ public sealed class BackgroundController : IDisposable
         var arrival = new NativeMenu();
         foreach (var (action, label) in new[]
                  {
+                     (CardArrivalAction.AskOnce, "Show new recordings, copy on Start"),
                      (CardArrivalAction.ShowReadyWindow, "Show Ready to copy"),
                      (CardArrivalAction.CopyAutomatically, "Copy automatically with the last setup"),
                      (CardArrivalAction.DoNothing, "Do nothing"),

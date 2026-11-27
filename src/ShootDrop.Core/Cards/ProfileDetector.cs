@@ -57,7 +57,7 @@ public sealed class ProfileDetector(IReadOnlyList<CameraProfile> profiles, FileT
         if (!hasDcim)
         {
             var audioProfile = profiles.FirstOrDefault(p => p.Match.AudioOnlyWithoutDcim);
-            if (audioProfile is not null && SafeFiles(root).Any(f => types.KindOf(f) == FileKind.Audio))
+            if (audioProfile is not null && LooksLikeAudioRecorder(root))
                 return audioProfile;
         }
 
@@ -71,6 +71,21 @@ public sealed class ProfileDetector(IReadOnlyList<CameraProfile> profiles, FileT
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// An audio recorder's card holds (almost) only audio. A backup drive that happens to contain a WAV somewhere
+    /// next to videos and project folders is not one ("HDD 2TB" was taken for a DJI Mic, found 27 Nov 2026).
+    /// </summary>
+    private bool LooksLikeAudioRecorder(string root)
+    {
+        int audio = 0, other = 0;
+        foreach (var f in SafeFiles(root).Take(400))
+        {
+            if (types.KindOf(f) == FileKind.Audio) audio++;
+            else other++;
+        }
+        return audio > 0 && audio >= 4 * other;
     }
 
     private static IEnumerable<string> SafeFiles(string dir)

@@ -214,10 +214,13 @@ public sealed partial class CopyingPageViewModel : PageViewModel
     private readonly Stopwatch _clock = new();
     private readonly long[] _starts;
 
-    public CopyingPageViewModel(ShootDropContext ctx, CopyPreview preview)
+    private readonly bool _autopilot;
+
+    public CopyingPageViewModel(ShootDropContext ctx, CopyPreview preview, bool autopilot = false)
     {
         _ctx = ctx;
         _preview = preview;
+        _autopilot = autopilot;
         var items = preview.Plan.Items;
         _starts = new long[items.Count];
         long acc = 0;
@@ -249,6 +252,7 @@ public sealed partial class CopyingPageViewModel : PageViewModel
         {
             var result = await _ctx.Service.RunAsync(_preview, _ctx.Settings, progress, _cts.Token, _ctx.Journal);
             _clock.Stop();
+            if (_autopilot) Core.Autopilot.AutoCopy.Remember(_ctx.Settings, result.Files); // next insert offers only newer clips
             _ctx.Save(); // remembers "last used"
             if (_ctx.Settings.OpenFinderWhenDone) _ctx.Platform.OpenFolder(plan.IsSplit ? _ctx.Settings.ProjectsRoot : plan.ProjectRoot);
             var ejected = false;

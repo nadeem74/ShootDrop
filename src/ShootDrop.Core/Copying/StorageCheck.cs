@@ -30,6 +30,24 @@ public sealed record StorageStatus(StorageProblem Problem, string Message, strin
 /// </summary>
 public static class StorageCheck
 {
+    /// <summary>Free bytes on the drive holding <paramref name="path"/>, or null if it can't be read.</summary>
+    public static long? FreeBytes(string path)
+    {
+        try
+        {
+            var full = Path.GetFullPath(path);
+            var drive = DriveInfo.GetDrives()
+                .Where(d => d.IsReady && full.StartsWith(d.RootDirectory.FullName, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(d => d.RootDirectory.FullName.Length)
+                .FirstOrDefault();
+            return drive?.AvailableFreeSpace;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
     public static StorageStatus Evaluate(string projectsRoot, long bytesNeeded, Func<string, long?> freeBytes, Func<string, bool> directoryExists)
     {
         var external = ExternalDriveRoot(projectsRoot);

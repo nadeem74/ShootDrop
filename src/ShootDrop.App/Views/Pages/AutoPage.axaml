@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ShootDrop.App.ViewModels"
+             x:Class="ShootDrop.App.Views.Pages.AutoPage"
+             x:DataType="vm:AutoPageViewModel">
+
+  <!-- FR-26 autopilot: new sessions in time order, ready names, free space, one Start. -->
+  <ScrollViewer>
+    <StackPanel Margin="22,20,22,22" Spacing="14">
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="h1" Text="{Binding Headline}" TextWrapping="Wrap" />
+        <Button Grid.Column="1" Classes="link" Content="Refresh" Command="{Binding RefreshCommand}" VerticalAlignment="Top" />
+      </Grid>
+
+      <Border Classes="card" Padding="0" IsVisible="{Binding HasSessions}">
+        <ItemsControl ItemsSource="{Binding Sessions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:AutoSessionRow">
+              <Border BorderBrush="{StaticResource SoftLine}" BorderThickness="0,0,0,1" Padding="12,10">
+                <Grid ColumnDefinitions="30,*" RowDefinitions="Auto,Auto,Auto">
+                  <CheckBox Grid.RowSpan="2" IsChecked="{Binding Included}" VerticalAlignment="Top" />
+                  <StackPanel Grid.Column="1" Spacing="1">
+                    <TextBlock Classes="name" Text="{Binding Time}" />
+                    <TextBlock Classes="muted" FontSize="12" Text="{Binding Detail}" />
+                  </StackPanel>
+                  <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Name}" Margin="0,6,0,0" IsEnabled="{Binding Included}" />
+                  <TextBlock Grid.Row="2" Grid.Column="1" Classes="muted" FontSize="11" Text="{Binding Source}" Margin="0,3,0,0"
+                             TextWrapping="Wrap" IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+
+      <StackPanel Spacing="4" IsVisible="{Binding HasSessions}">
+        <TextBlock Classes="label" Text="What did you shoot? (optional)" Margin="0" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding Note}" Watermark="morning Sinhagad Fort, evening Cafe review" />
+          <Button Grid.Column="1" Margin="8,0,0,0" Content="{Binding NameButtonText}" Command="{Binding NameFromNoteCommand}" IsEnabled="{Binding !Naming}" />
+        </Grid>
+      </StackPanel>
+
+      <Border Classes.warn="{Binding !StatusIsProblem}" Classes.problem="{Binding StatusIsProblem}"
+              IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <Grid ColumnDefinitions="Auto,*">
+          <TextBlock Classes="problem" Text="⚠" Margin="0,0,8,0" IsVisible="{Binding StatusIsProblem}" />
+          <TextBlock Grid.Column="1" Text="{Binding Status}" TextWrapping="Wrap" FontSize="13" IsVisible="{Binding !StatusIsProblem}" />
+          <TextBlock Grid.Column="1" Classes="problem" Text="{Binding Status}" FontSize="13" TextWrapping="Wrap" IsVisible="{Binding StatusIsProblem}" />
+        </Grid>
+      </Border>
+
+      <Button Classes="primary big" HorizontalAlignment="Stretch" Content="Start copying" Command="{Binding StartCommand}"
+              IsVisible="{Binding HasSessions}" IsDefault="True" />
+
+      <Grid ColumnDefinitions="Auto,*">
+        <Button Classes="link" Content="More options…" Command="{Binding MoreOptionsCommand}" />
+        <TextBlock Grid.Column="1" Classes="muted" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"
+                   Text="Cards are only read · every file verified" />
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

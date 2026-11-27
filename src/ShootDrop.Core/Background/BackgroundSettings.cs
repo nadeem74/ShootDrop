@@ -3,7 +3,7 @@ namespace ShootDrop.Core.Background;
 /// <summary>What ShootDrop does by itself when new cards are plugged in (FR-21).</summary>
 public enum CardArrivalAction
 {
-    /// <summary>Open the small "Ready to copy" window. The default: one click, nothing happens without you.</summary>
+    /// <summary>Open the small "Ready to copy" window: one click, nothing happens without you.</summary>
     ShowReadyWindow,
 
     /// <summary>Start copying straight away with the last setup, if it is safe to (see <see cref="CardArrival"/>).</summary>
@@ -11,6 +11,12 @@ public enum CardArrivalAction
 
     /// <summary>Only update the menu bar menu.</summary>
     DoNothing,
+
+    /// <summary>
+    /// Autopilot (FR-26, ADR-008), the default: one screen with the new recording sessions and ready names,
+    /// one Start, then everything else by itself.
+    /// </summary>
+    AskOnce,
 }
 
 /// <summary>Running from the menu bar (FR-21, FR-23, FR-24).</summary>
@@ -31,5 +37,5 @@ public sealed class BackgroundSettings
     /// <summary>Which keys; the user can change it in Settings. Default ⌃⌥⌘C.</summary>
     public Shortcut Shortcut { get; set; } = Shortcut.Default;
 
-    public CardArrivalAction WhenCardsPluggedIn { get; set; } = CardArrivalAction.ShowReadyWindow;
+    public CardArrivalAction WhenCardsPluggedIn { get; set; } = CardArrivalAction.AskOnce;
 }

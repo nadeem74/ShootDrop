@@ -10,6 +10,9 @@ public enum ArrivalDecision
     None,
     ShowReadyWindow,
     StartCopy,
+
+    /// <summary>Autopilot: show the one-screen "new sessions" view.</summary>
+    ShowAutopilot,
 }
 
 /// <summary>
@@ -30,7 +33,12 @@ public static class CardArrival
     {
         if (copyRunning || action == CardArrivalAction.DoNothing) return ArrivalDecision.None;
         if (NewCards(before, now).Count == 0) return ArrivalDecision.None;
-        return action == CardArrivalAction.CopyAutomatically ? ArrivalDecision.StartCopy : ArrivalDecision.ShowReadyWindow;
+        return action switch
+        {
+            CardArrivalAction.CopyAutomatically => ArrivalDecision.StartCopy,
+            CardArrivalAction.AskOnce => ArrivalDecision.ShowAutopilot,
+            _ => ArrivalDecision.ShowReadyWindow,
+        };
     }
 
     /// <summary>

@@ -31,6 +31,17 @@ public sealed class AppSettings
 
     public TimeSpan TimelineBreak => TimeSpan.FromMinutes(Math.Clamp(TimelineBreakMinutes, 15, 240));
 
+    /// <summary>
+    /// Autopilot (FR-26): per card, the newest clip already copied by the autopilot. The next insert offers only newer clips.
+    /// </summary>
+    public Dictionary<string, DateTime> AutoCopiedUpTo { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Agent (FR-27): what the person says they shot, e.g. "morning Sinhagad Fort, evening Cafe review". Used to name sessions.</summary>
+    public string ShootNote { get; set; } = "";
+
+    /// <summary>Agent (FR-27): Claude model used to suggest names when an API key is present.</summary>
+    public string AgentModel { get; set; } = "claude-haiku-5-5";
+
     public const int CurrentVersion = 3;
 
     /// <summary>Brings settings saved by an older ShootDrop up to date.</summary>
