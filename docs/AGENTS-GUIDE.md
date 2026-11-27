@@ -183,3 +183,24 @@ modes. The lesson: **an agent should only automate what the person actually want
 reporting are routine, so they're automatic. Naming is a decision you want to keep, so the app asks.
 
 When the copy finishes, a macOS notification says how many files were copied and verified.
+
+## Bonus: iPhone over USB (built)
+
+An iPhone isn't a drive, so the copy engine can't read it directly. Instead of teaching the engine a new kind of
+source, ShootDrop **adapts the phone to look like a card**:
+
+```text
+iPhone plugged in → shootdrop-iphone (Swift, Apple ImageCaptureCore) lists videos with recording times
+  → PhoneImport.SelectNew picks the new ones → downloaded into a hidden staging folder marked as an "iPhone" card
+  → the card appears → the same autopilot screen, the same verified copy → staging emptied
+```
+
+| File | What it does |
+| --- | --- |
+| `scripts/macos/iphone/ShootDropIPhone.swift` | The helper: `watch`, `list`, `get`. Read-only on the phone. Built into the app by `package-app.sh` |
+| `src/ShootDrop.Core/Phone/PhoneImport.cs` | What's new, the staging card, reading the helper's JSON lines, running the helper |
+| `src/ShootDrop.App/Services/PhoneService.cs` | Watches for the iPhone, asks you to unlock it, brings videos in, clears staging after the copy |
+| `profiles/apple-iphone.json` | Recognises the staging card and sends it to `Video/iPhone` |
+
+**Idea to take away: the adapter pattern.** One small piece makes a new source look like the old one, and everything
+else (sessions, naming, verification, reports, resume) works unchanged and stays tested.

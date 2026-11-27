@@ -6,6 +6,7 @@ using ShootDrop.App.ViewModels;
 using ShootDrop.App.Views;
 using ShootDrop.Core;
 using ShootDrop.Core.Cards;
+using ShootDrop.Core.Phone;
 using ShootDrop.Core.Settings;
 
 namespace ShootDrop.App;
@@ -26,7 +27,11 @@ public partial class App : Application
             var testing = !string.IsNullOrWhiteSpace(testDir);
             var store = testing ? new SettingsStore(Path.Combine(testDir!, "settings.json")) : SettingsStore.Default();
             var settings = store.Load();
-            IVolumeProvider volumes = testing ? new TestCardsVolumeProvider(Path.Combine(testDir!, "cards")) : new SystemVolumeProvider();
+            IVolumeProvider cardsSource = testing ? new TestCardsVolumeProvider(Path.Combine(testDir!, "cards")) : new SystemVolumeProvider();
+            // Plus the iPhone staging "card": videos brought in from a connected iPhone show up like a card.
+            var settingsDir = Path.GetDirectoryName(store.Path)!;
+            IVolumeProvider volumes = new CompositeVolumeProvider(cardsSource,
+                new StagingVolumeProvider(() => settings.ProjectsRoot.Length > 0 ? PhoneImport.StagingRoot(settings, settingsDir) : null));
             var service = new ShootDropService(volumes, ProfileCatalog.Load(store.ProfilesDirectory));
             var monitor = new CardMonitor(service, settings, volumes);
 
@@ -40,7 +45,9 @@ public partial class App : Application
 
             _background = new BackgroundController(this, window, ctx, () => desktop.Shutdown());
             ctx.Background = _background;
-            desktop.Exit += (_, _) => _background.Dispose();
+            ctx.Phone = new PhoneService(ctx, settingsDir);
+            desktop.Exit += (_, _) => { _background.Dispose(); ctx.Phone.Dispose(); };
+            if (!testing) ctx.Phone.Start();
 
             shell.Start();
             _background.Start(Program.StartHidden);

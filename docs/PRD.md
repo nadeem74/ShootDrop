@@ -60,6 +60,7 @@ from every card into a project folder you define, checks every byte, understands
 | FR-25 | Split one day into several projects by recording time ("till 1 pm into A, till 6 pm into B"), from the smart box or the timeline (groups by breaks in recording, break length on a slider; name, merge, split at a clip); clips outside every time are shown, not copied | ✅ v0.3 |
 | FR-26 | Autopilot: card inserted → one screen with recording sessions in time order, ready names (date + time of first clip, e.g. `2026-11-27 0915`) and free space → one **Start** → copy, verify, notify with Show in Finder / Rename. Same flow from the menu bar and `shootdrop auto`. Drives that aren't camera cards never open it (ADR-008) | ✅ v0.4 (notification buttons: later) |
 | FR-27 | Agent: suggests names and splits through tools, every suggestion with its source (calendar, GPS, past projects); trust levels Ask / Countdown / Fully automatic; decision trace; evals in CI (ADR-008) | ✅ v0.4: note rules, Claude agent, grounding, trace, MCP tools, scripted-model tests · names are always asked for (date name if left blank); calendar/GPS and auto-start dropped by choice |
+| FR-28 | iPhone over USB (macOS): new videos read with ImageCaptureCore through the `shootdrop-iphone` helper, staged as an "iPhone" card, then the normal autopilot and verified copy; read-only on the phone; size checked per video | ✅ v0.4 |
 
 ## Non-functional requirements
 

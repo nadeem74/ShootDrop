@@ -259,6 +259,9 @@ public sealed partial class CopyingPageViewModel : PageViewModel
                     ? $"Copied {result.Copied + result.Skipped} files, all verified."
                     : $"{result.Failed} file(s) failed. Open ShootDrop to see which.");
             }
+            // iPhone clips were staged by ShootDrop; once they're safely in projects the staged copies go.
+            if (result.Failed == 0 && _preview.Cards.Any(c => c.Card.Name == Core.Phone.PhoneImport.CardName))
+                _ctx.Phone?.ClearStaging();
             _ctx.Save(); // remembers "last used"
             if (_ctx.Settings.OpenFinderWhenDone) _ctx.Platform.OpenFolder(plan.IsSplit ? _ctx.Settings.ProjectsRoot : plan.ProjectRoot);
             var ejected = false;
